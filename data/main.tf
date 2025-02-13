@@ -44,7 +44,7 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-123456"
+  ami           = "ami-123456789"
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
