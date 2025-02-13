@@ -1,31 +1,26 @@
+## Description de la Pull Request
+
+Décrivez les changements effectués dans cette PR de manière concise.
+
 ## Type de changement
 
-Indiquez le type de changement de votre pull request (ex. `feature`, `bugfix`, `documentation`, `optimization`, `release`, etc.)
+- [ ] 🐛 Bug fix
+- [ ] ✨ Nouvelle fonctionnalité
+- [ ] 📝 Mise à jour de la documentation
+- [ ] ♻️ Refactoring du code
+- [ ] 🚀 Autre (précisez) : ...
 
-## Description
+## Changements apportés
 
-Une description claire et concise des changements. Incluez le contexte ou le problème que la pull request résout, ou la valeur ajoutée.
+1. ...
+2. ...
+3. ...
 
-## Modifications incluses
+## 🚀 Screenshots / Démonstration
 
-- Modification 1
-- Modification 2
-- Autres modifications...
+Ajoutez des captures d’écran ou des gifs si nécessaire.
 
-## Comment tester les changements (Optionnel)
-
-Expliquez les tests que vous avez effectués. Par exemple:
-
-1. Aller à '...'
-2. Cliquer sur '....'
-3. Faire défiler jusqu'à '....'
-4. Vérifier que '...'
-
-## Dépendances ou Prérequis
-
-Listez toute dépendance ou prérequis pour cette PR (ex. dépendances de paquets, mise à jour de la base de données, etc.)
-
-## Checklist avant de soumettre
+## ✅ **Checklist avant de soumettre**
 
 - [ ] J'ai bien lié les issues correspondantes à cette PR.
 - [ ] J'ai ajouté une description détaillée de mes modifications.
@@ -33,7 +28,4 @@ Listez toute dépendance ou prérequis pour cette PR (ex. dépendances de paquet
 - [ ] J'ai mis à jour la documentation si nécessaire.
 - [ ] J'ai ajouté des tests pour couvrir mes modifications.
 - [ ] Tous les tests nouveaux et existants passent avec succès.
-
-## Autres informations
-
-Ajoutez ici tout autre contexte ou capture d'écran concernant la pull request.
+- [ ] Cette PR respecte la Clean Architecture et la structure du projet.
