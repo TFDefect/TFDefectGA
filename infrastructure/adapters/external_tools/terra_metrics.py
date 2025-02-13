@@ -83,12 +83,10 @@ class TerraMetricsAdapter:
                 # Lire et charger les résultats JSON
                 with open(temp_output_path, "r") as f:
                     result_json = json.load(f)
-                    results[file_name] = (
-                        result_json
-                    )
+                    results[file_name] = result_json
 
                 # Afficher le contenu du fichier d'entré
-                print("Fichier d'entrée:")
+                print("Fichier d'entrée :")
                 with open(temp_tf_path, "r") as f:
                     print(f.read())
 

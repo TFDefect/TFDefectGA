@@ -1,6 +1,7 @@
 from typing import Dict, List
 
-from infrastructure.adapters.external_tools.terra_metrics import TerraMetricsAdapter
+from infrastructure.adapters.external_tools.terra_metrics import \
+    TerraMetricsAdapter
 
 
 class AnalyzeTFCode:
