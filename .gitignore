@@ -1,0 +1,56 @@
+# Ignorer les fichiers Python compilés
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorer les environnements virtuels
+venv/
+.env
+
+# Ignorer les fichiers spécifiques aux IDEs
+.vscode/
+.idea/
+*.iml
+
+# Ignorer les fichiers de logs et de debug
+*.log
+logs/
+
+# Ignorer les dépendances installées manuellement
+*.egg-info/
+dist/
+build/
+
+# Ignorer les fichiers et dossiers liés à pytest et aux caches de tests
+.pytest_cache/
+coverage.xml
+htmlcov/
+.coverage
+.cache/
+
+# Ignorer les fichiers temporaires et artefacts générés
+.DS_Store
+Thumbs.db
+
+# Ignorer les fichiers de données temporaires
+data/*.tmp
+data/*.log
+
+# Ignorer les artefacts de GitHub Actions
+.github/workflows/*.log
+
+# Ignorer les fichiers de modèles et poids de ML
+models/
+*.h5
+*.pkl
+*.joblib
+
+output.json
+
+# Ignore les fichiers et dossiers Terraform temporaires
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+modules.json
