@@ -1,20 +1,14 @@
 import logging
 import sys
 
+logger = logging.getLogger("TFDefect")
+logger.setLevel(logging.DEBUG)
 
-def setup_logger():
-    """Configure le logger global du projet pour éviter les doublons."""
-    logger = logging.getLogger(__name__)
+if not logger.hasHandlers():
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
 
-    if not logger.hasHandlers():
-        logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
 
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(logging.DEBUG)
-
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(formatter)
-
-        logger.addHandler(handler)
-
-    return logger
+    logger.addHandler(handler)
