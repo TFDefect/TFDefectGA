@@ -4,9 +4,7 @@ import subprocess
 import tempfile
 from typing import Dict, List
 
-from utils.logger_utils import setup_logger
-
-logger = setup_logger()
+from utils.logger_utils import logger
 
 
 class TerraMetricsAdapter:
@@ -69,6 +67,8 @@ class TerraMetricsAdapter:
                     "--target",
                     temp_output_path,
                 ]
+
+                logger.info(f"Exécution de la commande : {' '.join(command)}")
 
                 # Exécuter TerraMetrics
                 _ = subprocess.run(command, check=True, capture_output=True, text=True)
