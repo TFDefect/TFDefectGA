@@ -3,9 +3,7 @@ from typing import Dict, List
 
 from core.parsers.terraform_parser import TerraformParser
 from infrastructure.adapters.git.git_adapter import GitAdapter
-from utils.logger_utils import setup_logger
-
-logger = setup_logger()
+from utils.logger_utils import logger
 
 
 class GitChanges:

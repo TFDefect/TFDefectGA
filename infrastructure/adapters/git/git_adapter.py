@@ -3,9 +3,7 @@ from typing import Dict, List, Tuple
 
 from git import GitCommandError, Repo
 
-from utils.logger_utils import setup_logger
-
-logger = setup_logger()
+from utils.logger_utils import logger
 
 
 class GitAdapter:
