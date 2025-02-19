@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -31,7 +31,6 @@ module "kubernetes" {
   api_server_whitelist        = var.api_server_whitelist
   nodeport_whitelist          = var.nodeport_whitelist
   ingress_whitelist           = var.ingress_whitelist
-  extra_ingress_firewalls     = var.extra_ingress_firewalls
 }
 
 resource "aws_s3_bucket" "my_bucket" {
