@@ -73,6 +73,7 @@ class AnalyzeTFCode:
                     index += 1
 
         return analysis_results
+
     def compare_metrics(self, before_metrics: Dict[str, dict], after_metrics: Dict[str, dict]) -> Dict[str, dict]:
         """
         Compare les métriques avant et après les changements.
@@ -122,10 +123,8 @@ class AnalyzeTFCode:
                     elif isinstance(before_value, str) and isinstance(after_value, str) and before_value != after_value:
                         diff[key] = f"{before_value} → {after_value}"
 
-                differences[f"{block_type} {block_name}"] = {
-                    "before": before_block,
-                    "after": after_block,
-                    "differences": diff,
-                }
+                if diff:
+                    differences[f"{block_type} {block_name}"] = diff
 
+        logger.info(f"Différences calculées : {differences}")
         return differences

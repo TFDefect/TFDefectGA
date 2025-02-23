@@ -79,12 +79,8 @@ def display_analysis_results(results):
     logger.info("\n📊 Résumé de l'analyse des fichiers Terraform :")
     for file, content in results.items():
         print(f"\n📂 Fichier analysé : {file}")
-        if "data" in content:
-            for block in content["data"]:
-                block_name = block.get("block_name", "[Nom Inconnu]")
-                block_type = block.get("block", "[Type Inconnu]")
-                defect_status = block.get("defect_prediction", "N/A")
-                print(f"    - {block_type} {block_name} -> {defect_status}")
+        for block, diff in content.items():
+            print(f"    - {block} : {diff}")
 
 
 def cleanup_temp_repo(repo_url, repo_path):
@@ -124,13 +120,13 @@ def main():
     try:
         analysis_results = detect_and_analyze(commit_hash, repo_path)
         display_analysis_results(analysis_results)
+        save_results(analysis_results)  # Sauvegarder les différences dans output.json
     except SystemExit:
         sys.exit(0)
     except Exception as e:
         logger.error(f"Erreur fatale : {e}")
         sys.exit(1)
 
-    save_results(analysis_results)
     cleanup_temp_repo(repo_url, repo_path)
 
 
