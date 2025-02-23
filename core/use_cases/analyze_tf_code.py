@@ -73,44 +73,59 @@ class AnalyzeTFCode:
                     index += 1
 
         return analysis_results
-    def compare_metrics(self, before_metrics: Dict[str, dict], after_metrics: Dict[str, dict]) -> Dict[str, dict]:
-            """
-            Compare les métriques avant et après les changements.
+def compare_metrics(self, before_metrics: Dict[str, dict], after_metrics: Dict[str, dict]) -> Dict[str, dict]:
+    """
+    Compare les métriques avant et après les changements.
 
-            Args:
-                before_metrics (Dict[str, dict]): Métriques avant les changements.
-                after_metrics (Dict[str, dict]): Métriques après les changements.
+    Args:
+        before_metrics (Dict[str, dict]): Métriques avant les changements.
+        after_metrics (Dict[str, dict]): Métriques après les changements.
 
-            Returns:
-                Dict[str, dict]: Différences entre les métriques avant et après les changements.
-            """
-            differences = {}
+    Returns:
+        Dict[str, dict]: Différences entre les métriques avant et après les changements.
+    """
+    differences = {}
 
-            for file, before_content in before_metrics.items():
-                after_content = after_metrics.get(file, {})
+    for file, before_content in before_metrics.items():
+        after_content = after_metrics.get(file, {})
 
-                if "data" not in before_content or "data" not in after_content:
-                    continue
+        if "data" not in before_content or "data" not in after_content:
+            continue
 
-                before_blocks = before_content["data"]
-                after_blocks = after_content["data"]
+        before_blocks = before_content["data"]
+        after_blocks = after_content["data"]
 
-                for before_block, after_block in zip(before_blocks, after_blocks):
-                    block_name = before_block.get("block_name", "[Nom Inconnu]")
-                    block_type = before_block.get("block", "[Type Inconnu]")
+        # On s'assure de comparer TOUS les blocs, même s'il y en a plus dans after
+        max_length = max(len(before_blocks), len(after_blocks))
+        for i in range(max_length):
+            before_block = before_blocks[i] if i < len(before_blocks) else {}
+            after_block = after_blocks[i] if i < len(after_blocks) else {}
 
-                    logger.info(f"Comparaison des métriques pour {block_type} {block_name}")
-                    logger.info(f"Métriques avant : {before_block}")
-                    logger.info(f"Métriques après : {after_block}")
+            block_name = after_block.get("block_name", before_block.get("block_name", "[Nom Inconnu]"))
+            block_type = after_block.get("block", before_block.get("block", "[Type Inconnu]"))
 
-                    differences[f"{block_type} {block_name}"] = {
-                        "before": before_block,
-                        "after": after_block,
-                        "differences": {
-                            key: after_block[key] - before_block[key]
-                            for key in before_block
-                            if key in after_block and isinstance(before_block[key], (int, float))
-                        },
-                    }
+            logger.info(f"Comparaison des métriques pour {block_type} {block_name}")
+            logger.info(f"Métriques avant : {before_block}")
+            logger.info(f"Métriques après : {after_block}")
 
-            return differences
+            diff = {}
+
+            for key in set(before_block.keys()).union(set(after_block.keys())):
+                before_value = before_block.get(key)
+                after_value = after_block.get(key)
+
+                # Comparaison des valeurs numériques
+                if isinstance(before_value, (int, float)) and isinstance(after_value, (int, float)):
+                    diff[key] = after_value - before_value
+
+                # Comparaison des chaînes de caractères (comme "version")
+                elif isinstance(before_value, str) and isinstance(after_value, str) and before_value != after_value:
+                    diff[key] = f"{before_value} → {after_value}"
+
+            differences[f"{block_type} {block_name}"] = {
+                "before": before_block,
+                "after": after_block,
+                "differences": diff,
+            }
+
+    return differences
