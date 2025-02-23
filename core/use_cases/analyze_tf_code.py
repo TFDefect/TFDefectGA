@@ -108,5 +108,5 @@ class AnalyzeTFCode:
                             if key in after_block and isinstance(before_block[key], (int, float))
                         },
                     }
-
+            
             return differences
