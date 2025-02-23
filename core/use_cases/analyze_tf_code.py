@@ -99,6 +99,10 @@ class AnalyzeTFCode:
                     block_name = before_block.get("block_name", "[Nom Inconnu]")
                     block_type = before_block.get("block", "[Type Inconnu]")
 
+                    logger.info(f"Comparaison des métriques pour {block_type} {block_name}")
+                    logger.info(f"Métriques avant : {before_block}")
+                    logger.info(f"Métriques après : {after_block}")
+
                     differences[f"{block_type} {block_name}"] = {
                         "before": before_block,
                         "after": after_block,
@@ -108,5 +112,5 @@ class AnalyzeTFCode:
                             if key in after_block and isinstance(before_block[key], (int, float))
                         },
                     }
-            
+
             return differences
