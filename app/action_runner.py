@@ -53,6 +53,7 @@ def detect_and_analyze(commit_hash, repo_path):
     try:
         logger.info("Extraction des modifications Terraform...")
         modified_blocks = detect_changes.get_modified_tf_blocks(commit_hash)
+        blocks_before_change = detect_changes.get_tf_blocks_before_change(commit_hash)
 
         if not modified_blocks:
             logger.info("Aucun fichier Terraform modifié.")
@@ -61,7 +62,11 @@ def detect_and_analyze(commit_hash, repo_path):
         logger.info(
             "Analyse des fichiers modifiés avec TerraMetrics et prédiction ML..."
         )
-        return analyze_code.analyze_blocks(modified_blocks)
+        analysis_results = analyze_code.analyze_blocks(modified_blocks)
+        before_metrics = analyze_code.analyze_blocks(blocks_before_change)
+        differences = analyze_code.compare_metrics(before_metrics, analysis_results)
+
+        return differences
 
     except Exception as e:
         logger.error(f"Erreur d'analyse : {e}")
