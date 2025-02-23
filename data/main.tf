@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -48,6 +48,6 @@ resource "aws_instance" "example" {
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
-    command = "echo Hello"
+    command = "echo Hello world"
   }
 }
