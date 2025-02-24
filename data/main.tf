@@ -54,4 +54,9 @@ resource "aws_instance" "example" {
   tags = {
     Name = "ExampleInstance"
   }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              echo "Hello, World!" > /var/tmp/hello.txt
+              EOF
 }

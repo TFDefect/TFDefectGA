@@ -63,8 +63,8 @@ def detect_and_analyze(commit_hash, repo_path):
         logger.info(
             "Analyse des fichiers modifiés avec TerraMetrics et prédiction ML..."
         )
-        analysis_results = analyze_code.analyze_blocks(modified_blocks)
         before_metrics = analyze_code.analyze_blocks(blocks_before_change)
+        analysis_results = analyze_code.analyze_blocks(modified_blocks)
         differences = analyze_code.compare_metrics(before_metrics, analysis_results)
 
         return differences

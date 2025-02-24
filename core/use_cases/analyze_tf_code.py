@@ -118,7 +118,8 @@ class AnalyzeTFCode:
 
                     # Comparaison des valeurs numériques
                     if isinstance(before_value, (int, float)) and isinstance(after_value, (int, float)):
-                        diff[key] = after_value - before_value
+                        if before_value != after_value:
+                            diff[key] = after_value - before_value
 
                     # Comparaison des chaînes de caractères (comme "version")
                     elif isinstance(before_value, str) and isinstance(after_value, str) and before_value != after_value:
