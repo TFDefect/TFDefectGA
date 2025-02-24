@@ -78,9 +78,22 @@ def display_analysis_results(results):
     """Affiche les résultats de l'analyse Terraform avec prédictions ML."""
     logger.info("\n📊 Résumé de l'analyse des fichiers Terraform :")
     for file, content in results.items():
-        print(f"\n📂 Fichier analysé : {file}")
-        for block, diff in content.items():
-            print(f"    - {block} : {diff}")
+            print(f"\n📂 Fichier analysé : {file}")
+            if "data" in content:
+                for block in content["data"]:
+                    block_name = block.get("block_name", "[Nom Inconnu]")
+                    block_type = block.get("block", "[Type Inconnu]")
+                    defect_status = block.get("defect_prediction", "N/A")
+                    print(f"    - {block_type} {block_name} -> {defect_status}")
+
+
+def display_differences(differences):
+    """Affiche les différences entre les métriques avant et après les changements."""
+    logger.info("\n📊 Différences entre les métriques avant et après les changements :")
+    for block, diff in differences.items():
+        print(f"\n📂 Bloc analysé : {block}")
+        for metric, change in diff.items():
+            print(f"    - {metric} : {change}")
 
 
 def cleanup_temp_repo(repo_url, repo_path):
@@ -119,7 +132,7 @@ def main():
 
     try:
         analysis_results = detect_and_analyze(commit_hash, repo_path)
-        display_analysis_results(analysis_results)
+        display_differences(analysis_results)
         save_results(analysis_results)  # Sauvegarder les différences dans output.json
     except SystemExit:
         sys.exit(0)

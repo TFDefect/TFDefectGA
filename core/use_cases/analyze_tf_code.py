@@ -93,21 +93,22 @@ class AnalyzeTFCode:
             if "data" not in before_content or "data" not in after_content:
                 continue
 
-            before_blocks = before_content["data"]
-            after_blocks = after_content["data"]
+            before_blocks = {block["block_identifiers"]: block for block in before_content["data"]}
+            after_blocks = {block["block_identifiers"]: block for block in after_content["data"]}
 
-            # On s'assure de comparer TOUS les blocs, même s'il y en a plus dans after
-            max_length = max(len(before_blocks), len(after_blocks))
-            for i in range(max_length):
-                before_block = before_blocks[i] if i < len(before_blocks) else {}
-                after_block = after_blocks[i] if i < len(after_blocks) else {}
+            for block_id, before_block in before_blocks.items():
+                after_block = after_blocks.get(block_id)
 
-                block_name = after_block.get("block_name", before_block.get("block_name", "[Nom Inconnu]"))
-                block_type = after_block.get("block", before_block.get("block", "[Type Inconnu]"))
+                if not after_block:
+                    continue
+
+                block_parts = block_id.split()
+                block_type = block_parts[0] if len(block_parts) > 0 else "[Type Inconnu]"
+                block_name = block_parts[1] if len(block_parts) > 1 else "[Nom Inconnu]"
 
                 logger.info(f"Comparaison des métriques pour {block_type} {block_name}")
-                logger.info(f"Métriques avant : {before_block}")
-                logger.info(f"Métriques après : {after_block}")
+                logger.info(f"Métriques avant : {json.dumps(before_block, indent=4)}")
+                logger.info(f"Métriques après : {json.dumps(after_block, indent=4)}")
 
                 diff = {}
 
@@ -126,5 +127,4 @@ class AnalyzeTFCode:
                 if diff:
                     differences[f"{block_type} {block_name}"] = diff
 
-        logger.info(f"Différences calculées : {differences}")
         return differences
