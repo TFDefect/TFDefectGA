@@ -1,4 +1,5 @@
 import os
+import tempfile
 from typing import Dict, List
 
 from core.parsers.terraform_parser import TerraformParser
@@ -74,6 +75,7 @@ class GitChanges:
                 continue
 
         return modified_blocks
+
     def get_blocks_before_change(self, commit_hash: str) -> Dict[str, List[str]]:
         """
         Récupère les blocs Terraform avant les changements dans un commit.
@@ -93,20 +95,18 @@ class GitChanges:
                 logger.warning(f"Le fichier supprimé {file_path} est ignoré.")
                 continue
 
-            full_path = os.path.join(self.git_adapter.repo.working_tree_dir, file_path)
-
-            # Vérifier que le fichier existe avant d'ouvrir
-            if not os.path.exists(full_path):
-                logger.error(f"Fichier Terraform introuvable : {full_path}")
-                continue
-
-            # Vérifier si le fichier est vide
-            if os.stat(full_path).st_size == 0:
-                logger.warning(f"Le fichier {file_path} est vide et sera ignoré.")
-                continue
-
             try:
-                parser = TerraformParser(full_path)
+                # Récupérer le contenu du fichier tel qu'il était dans le parent commit
+                parent_commit_hash = f"{commit_hash}^"
+                file_content = self.git_adapter.repo.git.show(f"{parent_commit_hash}:{file_path}")
+
+                # Créer un fichier temporaire avec le contenu du parent commit
+                with tempfile.NamedTemporaryFile(delete=False, mode='w', encoding='utf-8') as temp_file:
+                    temp_file.write(file_content)
+                    temp_file_path = temp_file.name
+
+                # Parser le contenu du fichier temporaire
+                parser = TerraformParser(temp_file_path)
                 changed_lines = self.git_adapter.get_changed_lines(
                     commit_hash, file_path
                 )
