@@ -51,8 +51,6 @@ resource "aws_instance" "example" {
     command = "echo Hello world"
   }
 
-  tags = {
-    Name = "ExampleInstance"
-  }
+
 
 }

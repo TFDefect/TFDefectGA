@@ -67,7 +67,18 @@ def detect_and_analyze(commit_hash, repo_path):
         analysis_results = analyze_code.analyze_blocks(modified_blocks)
         differences = analyze_code.compare_metrics(before_metrics, analysis_results)
 
-        return differences
+        # Préparer les résultats pour l'affichage et la sauvegarde
+        results = {}
+        for block, diff in differences.items():
+            results[block] = {
+                "differences": diff,
+                "file": modified_blocks[block]["file"],
+                "block_name": modified_blocks[block].get("block_name", "[Nom Inconnu]"),
+                "block_type": modified_blocks[block].get("block", "[Type Inconnu]"),
+                "defect_status": modified_blocks[block].get("defect_prediction", "N/A")
+            }
+
+        return results
 
     except Exception as e:
         logger.error(f"Erreur d'analyse : {e}")
