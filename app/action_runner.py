@@ -14,11 +14,15 @@ from infrastructure.adapters.git.git_adapter import GitAdapter
 from utils.logger_utils import logger
 
 
-def save_results(results, output_path=OUTPUT_JSON_PATH):
-    """Sauvegarde les résultats de l'analyse dans un fichier JSON."""
+def save_results(results, differences, output_path=OUTPUT_JSON_PATH):
+    """Sauvegarde les résultats de l'analyse et les différences dans un fichier JSON."""
     try:
+        output_data = {
+            "analysis_results": results,
+            "differences": differences
+        }
         with open(output_path, "w") as json_file:
-            json.dump(results, json_file, indent=4)
+            json.dump(output_data, json_file, indent=4)
         logger.info(f"Résultats sauvegardés : `{output_path}`")
     except Exception as e:
         logger.error(f"Erreur de sauvegarde : {e}")
@@ -67,18 +71,18 @@ def detect_and_analyze(commit_hash, repo_path):
         analysis_results = analyze_code.analyze_blocks(modified_blocks)
         differences = analyze_code.compare_metrics(before_metrics, analysis_results)
 
-        # Préparer les résultats pour l'affichage et la sauvegarde
-        results = {}
-        for block, diff in differences.items():
-            results[block] = {
-                "differences": diff,
-                "file": modified_blocks[block]["file"],
-                "block_name": modified_blocks[block].get("block_name", "[Nom Inconnu]"),
-                "block_type": modified_blocks[block].get("block", "[Type Inconnu]"),
-                "defect_status": modified_blocks[block].get("defect_prediction", "N/A")
-            }
+        # Afficher les résultats dans le fichier JSON
+        logger.info("\n📊 Résumé de l'analyse des fichiers Terraform :")
+        for file, content in analysis_results.items():
+            logger.info(f"\n📂 Fichier analysé : {file}")
+            if "data" in content:
+                for block in content["data"]:
+                    block_name = block.get("block_name", "[Nom Inconnu]")
+                    block_type = block.get("block", "[Type Inconnu]")
+                    defect_status = block.get("defect_prediction", "N/A")
+                    logger.info(f"    - {block_type} {block_name} -> {defect_status}")
 
-        return results
+        return analysis_results, differences
 
     except Exception as e:
         logger.error(f"Erreur d'analyse : {e}")
@@ -142,9 +146,10 @@ def main():
     verify_jar()
 
     try:
-        analysis_results = detect_and_analyze(commit_hash, repo_path)
-        display_differences(analysis_results)
-        save_results(analysis_results)  # Sauvegarder les différences dans output.json
+        analysis_results, differences = detect_and_analyze(commit_hash, repo_path)
+        display_analysis_results(analysis_results)
+        display_differences(differences)
+        save_results(analysis_results, differences)  # Sauvegarder les résultats dans output.json
     except SystemExit:
         sys.exit(0)
     except Exception as e:
