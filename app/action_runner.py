@@ -7,6 +7,7 @@ import tempfile
 from git import GitCommandError, Repo
 
 from config.config import *
+from core.parsers.DeltaMetricsExtractor import DeltaMetricsExtractor
 from core.use_cases.analyze_tf_code import AnalyzeTFCode
 from core.use_cases.detect_tf_changes import DetectTFChanges
 from infrastructure.adapters.git.git_adapter import GitAdapter
@@ -68,7 +69,10 @@ def detect_and_analyze(commit_hash, repo_path):
         )
         before_metrics = analyze_code.analyze_blocks(blocks_before_change)
         analysis_results = analyze_code.analyze_blocks(modified_blocks)
-        differences = analyze_code.compare_metrics(before_metrics, analysis_results)
+
+        # Comparaison des métriques avant et après les changements
+        extractor = DeltaMetricsExtractor(OUTPUT_JSON_PATH)
+        differences = extractor.compare_metrics(before_metrics, analysis_results)
 
         # Afficher les résultats dans le fichier JSON
         logger.info("\n📊 Résumé de l'analyse des fichiers Terraform :")
