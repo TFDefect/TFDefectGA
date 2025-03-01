@@ -50,5 +50,4 @@ resource "aws_instance" "example" {
   provisioner "local-exec" {
     command = "echo Hello world"
   }
-  
 }
