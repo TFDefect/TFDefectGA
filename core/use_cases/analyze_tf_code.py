@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List
 
-from core.parsers.metrics_extractor import TerraformMetricsExtractor
+from core.parsers.DeltaMetricsExtractor import DeltaMetricsExtractor
 from infrastructure.adapters.external_tools.terra_metrics import \
     TerraMetricsAdapter
 from infrastructure.adapters.ml.dummy_model import DummyMLModel
@@ -46,7 +46,7 @@ class AnalyzeTFCode:
         logger.info(f"Nombre de blocs Terraform analysés : {num_blocks}")
 
         # Extraction des métriques pour le modèle ML
-        extractor = TerraformMetricsExtractor(self.metrics_path)
+        extractor = DeltaMetricsExtractor(self.metrics_path)
         X, _ = extractor.extract_features()
 
         # Vérification des dimensions
@@ -74,58 +74,4 @@ class AnalyzeTFCode:
 
         return analysis_results
 
-    def compare_metrics(self, before_metrics: Dict[str, dict], after_metrics: Dict[str, dict]) -> Dict[str, dict]:
-        """
-        Compare les métriques avant et après les changements.
 
-        Args:
-            before_metrics (Dict[str, dict]): Métriques avant les changements.
-            after_metrics (Dict[str, dict]): Métriques après les changements.
-
-        Returns:
-            Dict[str, dict]: Différences entre les métriques avant et après les changements.
-        """
-        differences = {}
-
-        for file, before_content in before_metrics.items():
-            after_content = after_metrics.get(file, {})
-
-            if "data" not in before_content or "data" not in after_content:
-                continue
-
-            before_blocks = {block["block_identifiers"]: block for block in before_content["data"]}
-            after_blocks = {block["block_identifiers"]: block for block in after_content["data"]}
-
-            for block_id, before_block in before_blocks.items():
-                after_block = after_blocks.get(block_id)
-
-                if not after_block:
-                    continue
-
-                block_parts = block_id.split()
-                block_type = block_parts[0] if len(block_parts) > 0 else "[Type Inconnu]"
-                block_name = block_parts[1] if len(block_parts) > 1 else "[Nom Inconnu]"
-
-                logger.info(f"Comparaison des métriques pour {block_type} {block_name}")
-                logger.info(f"Métriques avant : {json.dumps(before_block, indent=4)}")
-                logger.info(f"Métriques après : {json.dumps(after_block, indent=4)}")
-
-                diff = {}
-
-                for key in set(before_block.keys()).union(set(after_block.keys())):
-                    before_value = before_block.get(key)
-                    after_value = after_block.get(key)
-
-                    # Comparaison des valeurs numériques
-                    if isinstance(before_value, (int, float)) and isinstance(after_value, (int, float)):
-                        if before_value != after_value:
-                            diff[key] = after_value - before_value
-
-                    # Comparaison des chaînes de caractères (comme "version")
-                    elif isinstance(before_value, str) and isinstance(after_value, str) and before_value != after_value:
-                        diff[key] = f"{before_value} → {after_value}"
-
-                if diff:
-                    differences[f"{block_type} {block_name}"] = diff
-
-        return differences
