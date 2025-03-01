@@ -61,6 +61,12 @@ class AnalyzeTFCode:
                 "Les dimensions des prédictions et des blocs analysés ne correspondent pas."
             )
 
+        # Comparaison des métriques avant et après les changements
+        before_metrics = {}  # Charger les métriques avant les changements
+        after_metrics = analysis_results
+        differences = extractor.compare_metrics(before_metrics, after_metrics)
+        logger.info(f"Différences des métriques : {differences}")
+
         # Prédiction des défauts via le modèle ML
         predictions = self.ml_model.predict_defects(X, num_blocks)
 
