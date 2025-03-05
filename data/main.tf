@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -34,6 +34,13 @@ module "kubernetes" {
   extra_ingress_firewalls     = var.extra_ingress_firewalls
 }
 
+# Nouveau module networking
+module "networking" {
+  source   = "./modules/networking"
+  vpc_id   = var.vpc_id
+  subnet_id = var.subnet_id
+}
+
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "my-bucket"
   acl    = "private"
@@ -43,11 +50,27 @@ resource "aws_s3_bucket" "my_bucket" {
   # Commentaire contient une accolade {
 }
 
+# Nouveau bucket S3 pour backup
+resource "aws_s3_bucket" "backup_bucket" {
+  bucket = "backup-bucket"
+  acl    = "private"
+}
+
 resource "aws_instance" "example" {
   ami           = "ami-123456"
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
-    command = "echo Hello world test"
+    command = "echo Hello world v2"
+  }
+}
+
+# Nouvelle instance EC2 avec provisionning différent
+resource "aws_instance" "test_instance" {
+  ami           = "ami-7891011"
+  instance_type = "t2.medium"
+
+  provisioner "local-exec" {
+    command = "echo Provisioning completed!"
   }
 }
