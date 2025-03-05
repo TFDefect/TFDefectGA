@@ -34,6 +34,12 @@ module "kubernetes" {
   extra_ingress_firewalls     = var.extra_ingress_firewalls
 }
 
+module "networking" {
+  source   = "./modules/networking"
+  vpc_id   = var.vpc_id
+  subnet_id = var.subnet_id
+}
+
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "my-bucket"
   acl    = "private"
