@@ -30,7 +30,7 @@ class AnalyzeTFCode:
             return {}
 
         # Exécution de TerraMetrics pour obtenir les métriques
-        analysis_results = self.terra_metrics.analyze_blocks(modified_blocks)
+        analysis_results = self.terra_metrics.extract_metrics(modified_blocks)
 
         with open(self.metrics_path, "w") as f:
             json.dump(analysis_results, f, indent=4)

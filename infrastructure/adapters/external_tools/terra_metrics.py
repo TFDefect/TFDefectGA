@@ -4,10 +4,11 @@ import subprocess
 import tempfile
 from typing import Dict, List
 
+from core.parsers.BaseMetricsExtractor import BaseMetricsExtractor
 from utils.logger_utils import logger
 
 
-class TerraMetricsAdapter:
+class TerraMetricsAdapter(BaseMetricsExtractor):
     def __init__(self, jar_path: str):
         """
         Initialise l'adaptateur TerraMetrics avec le chemin vers le fichier JAR.
@@ -21,7 +22,7 @@ class TerraMetricsAdapter:
                 f"TerraMetrics JAR est introuvable : {self.jar_path}"
             )
 
-    def analyze_blocks(self, modified_blocks: Dict[str, List[str]]) -> Dict[str, dict]:
+    def extract_metrics(self, modified_blocks: Dict[str, List[str]]) -> Dict[str, dict]:
         """
         Analyse plusieurs blocs Terraform modifiés.
 
