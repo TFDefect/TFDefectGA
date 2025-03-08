@@ -48,6 +48,6 @@ resource "aws_instance" "example" {
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
-    command = "echo Hello"
+    command = "echo Hello world"
   }
 }
