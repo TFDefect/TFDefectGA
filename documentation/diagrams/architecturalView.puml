@@ -18,8 +18,7 @@ node "TFDefect GitHub Action" {
         frame "Models" {
             package "skLearnModel" {}
             package "DummyModel" {}
-        }
-        
+        }    
     }
 
     rectangle "Couche infrastructure" #90EE90 {
@@ -31,6 +30,7 @@ node "TFDefect GitHub Action" {
             package "ProcessMetricsAdapter" {}
             package "DeltaMetricsAdapter" {}
         }
+        package "MetricsExtractorFactory" {}
         
     }
 
@@ -48,7 +48,7 @@ ActionRunner ..> DetectTFChanges : "appelle"
 ActionRunner ..> AnalyzeTFCode : "appelle"
 ActionRunner ..> ReportGenerator : "génère"
 
-DetectTFChanges ...> GitChanges : "utilise"
+DetectTFChanges ..> GitChanges : "utilise"
 GitChanges ..> GitAdapter : "dépend de"
 GitAdapter ..> TerraformParser : "parse des fichiers"
 
@@ -57,4 +57,5 @@ AnalyzeTFCode ...> MetricsExtractors: utilise
 TerraMetricsAdapter ....> TerraMetrics: utilise
 Models <.... TerraMetricsAdapter : "envoie un vecteur \n de données"
 
+MetricsExtractorFactory ...> MetricsExtractors: Crée une instance de
 @enduml

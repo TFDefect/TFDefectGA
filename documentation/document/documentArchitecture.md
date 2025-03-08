@@ -42,7 +42,7 @@ L'architecture de l'Action GitHub TFDefect se compose des 4 couches suivantes:
 - **Couche données**: Elle contient une cache qui stocke les données calculées temporairement pour optimiser les performances et éviter des calculs inutiles.
 - **Couche domaine** : C’est le cœur de l’application, où sont définies les règles métiers et les modèles de données.
   - `Models`: Regroupe les modèles d’apprentissage automatique utilisés pour l’analyse des métriques. On y retrouve le module `skLearnModel` qui Implémente un modèle basé sur scikit-learn pour prédire des anomalies ou tendances dans les métriques Terraform. On y retrouve également le module `DummyModel`, qui est un modèle naïf utilisé pour faire des tests.
-- **Couche infrastructure** : Elle gère les interactions avec des services externes (Git, fichiers Terraform, etc.). Elle contient les adaptateurs `GitChanges`, `GitAdapter` et `TerraformParser`. Elle contient également le bloc `MetricsExtractors` qui regroupe les 3 méthodes de calcul des métriques suivantes: `TerraMetricsAdapter`, `ProcessMetricsAdapter` et `DeltaMetricsAdapter`.
+- **Couche infrastructure** : Elle gère les interactions avec des services externes (Git, fichiers Terraform, etc.). Elle contient les adaptateurs `GitChanges`, `GitAdapter` et `TerraformParser`. Elle contient également le bloc `MetricsExtractors` qui regroupe les 3 méthodes de calcul des métriques suivantes: `TerraMetricsAdapter`, `ProcessMetricsAdapter` et `DeltaMetricsAdapter`. De plus, elle contient MetricsExtractorFactory, qui permet d'utiliser l'extracteur de métriques choisi par un utilisateur.
 - **Autre (externe)**:
   - `TerraMetrics`: Outil qui permet de calculer des métriques pour un fichier Terraform 
 
@@ -72,7 +72,8 @@ Le diagramme de classes suivant illustre la structure du système en mettant en 
 - **TerraMetricsAdapter** : Calcule des métriques spécifiques à partir des blocs Terraform à l'aide de TerraMetrics.  
 - **ProcessMetricsAdapter**: Autre méthode de calcul des métriques spécifiques à partir des blocs Terraform.
 - **DeltaMetricsAdapter**: Autre méthode de calcul des métriques spécifiques à partir des blocs Terraform.
-
+- **MetricsExtractorFactory**: Classe permettant de retourner une instance de l'extracteur de métriques choisi par le développeur lorsqu'il veut de lancer l'Action GitHub.
+  
 <div style="page-break-before:always"></div>
 
 ## Technologies utilisées

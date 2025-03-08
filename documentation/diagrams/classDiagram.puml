@@ -75,6 +75,10 @@ class ReportGenerator {
     + generate_json_report(): str
 }
 
+class MetricsExtractorFactory {
+    + get_extractor(extractor_type: str, output_path: str): BaseMetricsExtractor
+}
+
 AnalyzeTFCode <-u- ActionRunner : calls
 DetectTFChanges <-u-   ActionRunner: calls
 GitChanges <-u-  DetectTFChanges: uses
@@ -85,6 +89,8 @@ AnalyzeTFCode -down-> BaseMetricsExtractor : uses
 TerraMetricsAdapter -u--|> BaseMetricsExtractor
 DeltaMetricsAdapter -u-|> BaseMetricsExtractor
 ProcessMetricsAdapter -u--|> BaseMetricsExtractor
+
+MetricsExtractorFactory ..> BaseMetricsExtractor
 
 AnalyzeTFCode -down-> BaseModel : uses
 SklearnModel -u-|> BaseModel
