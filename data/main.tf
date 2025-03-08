@@ -50,4 +50,11 @@ resource "aws_instance" "example" {
   provisioner "local-exec" {
     command = "echo Hello World"
   }
+
+  lifecycle {
+    precondition {
+      condition     = var.instance_enabled
+      error_message = "L'instance EC2 est désactivée, veuillez activer 'instance_enabled'."
+    }
+  }
 }
