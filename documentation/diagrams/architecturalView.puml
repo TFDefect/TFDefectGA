@@ -1,0 +1,61 @@
+@startuml
+skinparam linetype ortho
+
+node "TFDefect GitHub Action" {
+    
+    rectangle "Couche présentation"  #ADD8E6 {
+        package "Template" {}
+    }
+
+    rectangle "Couche application" #FFAAAA {
+        package "ActionRunner" {}
+        package "AnalyzeTFCode" {}
+        package "DetectTFChanges" {}
+        package "ReportGenerator" {}
+    }
+
+    rectangle "Couche domaine" #FFFF99 {
+        frame "Models" {
+            package "skLearnModel" {}
+            package "DummyModel" {}
+        }    
+    }
+
+    rectangle "Couche infrastructure" #90EE90 {
+        package "GitChanges" {}
+        package "GitAdapter" {}
+        package "TerraformParser" {}
+        frame "MetricsExtractors" {
+            package "TerraMetricsAdapter" {}
+            package "ProcessMetricsAdapter" {}
+            package "DeltaMetricsAdapter" {}
+        }
+        package "MetricsExtractorFactory" {}
+        
+    }
+
+    rectangle "Couche données" #D3D3D3 {
+        package "Cache" {}
+    }
+}
+
+package TerraMetrics{}
+
+' Relations entre les couches
+Template ..> ActionRunner : "déclenche"
+
+ActionRunner ..> DetectTFChanges : "appelle"
+ActionRunner ..> AnalyzeTFCode : "appelle"
+ActionRunner ..> ReportGenerator : "génère"
+
+DetectTFChanges ..> GitChanges : "utilise"
+GitChanges ..> GitAdapter : "dépend de"
+GitAdapter ..> TerraformParser : "parse des fichiers"
+
+AnalyzeTFCode .down.> Cache: Stocke les \n données calculées
+AnalyzeTFCode ...> MetricsExtractors: utilise
+TerraMetricsAdapter ....> TerraMetrics: utilise
+Models <.... TerraMetricsAdapter : "envoie un vecteur \n de données"
+
+MetricsExtractorFactory ...> MetricsExtractors: Crée une instance de
+@enduml

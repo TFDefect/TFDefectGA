@@ -4,6 +4,7 @@ import shutil
 import sys
 import tempfile
 
+from core.parsers.metrics_extractor_factory import MetricsExtractorFactory
 from git import GitCommandError, Repo
 
 from config.config import *
@@ -45,10 +46,11 @@ def clone_repo_if_needed(repo_url):
     return Repo(search_parent_directories=True).working_tree_dir
 
 
-def detect_and_analyze(commit_hash, repo_path):
+def detect_and_analyze(commit_hash, repo_path, extractor_type):
     """Détecte les fichiers Terraform modifiés et les analyse avec TerraMetrics et ML."""
     detect_changes = DetectTFChanges(repo_path)
-    analyze_code = AnalyzeTFCode(TERRAMETRICS_JAR_PATH, OUTPUT_JSON_PATH)
+    metrics_extractor = MetricsExtractorFactory.get_extractor(extractor_type, TERRAMETRICS_JAR_PATH)
+    analyze_code = AnalyzeTFCode(TERRAMETRICS_JAR_PATH, OUTPUT_JSON_PATH, metrics_extractor)
 
     try:
         logger.info("Extraction des modifications Terraform...")
@@ -61,7 +63,12 @@ def detect_and_analyze(commit_hash, repo_path):
         logger.info(
             "Analyse des fichiers modifiés avec TerraMetrics et prédiction ML..."
         )
-        return analyze_code.analyze_blocks(modified_blocks)
+        analysis_results = analyze_code.analyze_blocks(modified_blocks)
+
+        if extractor_type == "delta":
+            metrics_extractor.display_differences(analysis_results)
+
+        return analysis_results
 
     except Exception as e:
         logger.error(f"Erreur d'analyse : {e}")
@@ -89,7 +96,7 @@ def cleanup_temp_repo(repo_url, repo_path):
 
 
 def main():
-    """Exécute l’analyse Terraform avec la gestion correcte du commit hash."""
+    """Exécute l'analyse Terraform avec la gestion correcte du commit hash."""
 
     # Vérifier que Git est bien initialisé
     GitAdapter.verify_git_repo()
@@ -98,6 +105,7 @@ def main():
     args = sys.argv[1:]
     repo_url = None
     commit_hash = "HEAD"
+    extractor_type = "terrametrics"  # Default extractor
 
     # Vérifier si un commit hash est fourni
     if args and not args[0].startswith("--"):
@@ -109,6 +117,11 @@ def main():
         if repo_index + 1 < len(args):
             repo_url = args[repo_index + 1]
 
+    if "--extractor" in args:
+        extractor_index = args.index("--extractor")
+        if extractor_index + 1 < len(args):
+            extractor_type = args[extractor_index + 1]
+
     # Déterminer le chemin du dépôt (soit local, soit cloné)
     repo_path = clone_repo_if_needed(repo_url)
 
@@ -116,16 +129,18 @@ def main():
     verify_jar()
 
     try:
-        analysis_results = detect_and_analyze(commit_hash, repo_path)
+        logger.info(f"Utilisation de l'extracteur: `{extractor_type}`...")
+        analysis_results = detect_and_analyze(commit_hash, repo_path, extractor_type)
         display_analysis_results(analysis_results)
+        save_results(analysis_results)
+        cleanup_temp_repo(repo_url, repo_path)
     except SystemExit:
+        cleanup_temp_repo(repo_url, repo_path)
         sys.exit(0)
     except Exception as e:
+        cleanup_temp_repo(repo_url, repo_path)
         logger.error(f"Erreur fatale : {e}")
         sys.exit(1)
-
-    save_results(analysis_results)
-    cleanup_temp_repo(repo_url, repo_path)
 
 
 if __name__ == "__main__":
