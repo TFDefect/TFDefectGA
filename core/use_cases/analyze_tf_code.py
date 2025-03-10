@@ -1,9 +1,9 @@
 import json
-from typing import Dict, List
+from typing import Dict, List, Type
 
+from core.parsers.BaseMetricsExtractor import BaseMetricsExtractor
 from core.parsers.metrics_extractor import TerraformMetricsExtractor
-from infrastructure.adapters.external_tools.terra_metrics import \
-    TerraMetricsAdapter
+from infrastructure.adapters.external_tools.terra_metrics import TerraMetricsAdapter
 from infrastructure.adapters.ml.dummy_model import DummyMLModel
 from utils.logger_utils import logger
 
@@ -11,26 +11,29 @@ from utils.logger_utils import logger
 class AnalyzeTFCode:
     """Orchestration de l'analyse des blocs Terraform modifiés et prédiction de défauts."""
 
-    def __init__(self, jar_path: str, metrics_path: str, ml_model=None):
-        self.terra_metrics = TerraMetricsAdapter(jar_path)
+    def __init__(
+        self, jar_path: str, metrics_path: str, metrics_extractor: BaseMetricsExtractor, ml_model=None
+    ):
+        self.metrics_extractor = metrics_extractor
         self.metrics_path = metrics_path
         self.ml_model = ml_model or DummyMLModel()
 
     def analyze_blocks(self, modified_blocks: Dict[str, List[str]]) -> Dict[str, dict]:
         """
-        Analyse les blocs Terraform modifiés avec TerraMetrics et applique un modèle ML de détection de défauts.
+        Analyse les blocs Terraform modifiés avec l'extracteur de métriques choisi et applique un modèle ML de détection de défauts.
 
         Args:
             modified_blocks (Dict[str, List[str]]): Blocs Terraform modifiés.
 
         Returns:
-            Dict[str, dict]: Résultats de l'analyse TerraMetrics avec prédictions de défauts.
+            Dict[str, dict]: Résultats de l'analyse avec prédictions de défauts.
         """
         if not modified_blocks:
             return {}
 
-        # Exécution de TerraMetrics pour obtenir les métriques
-        analysis_results = self.terra_metrics.extract_metrics(modified_blocks)
+        # Exécution de l'extracteur de métriques pour obtenir les métriques
+        logger.info(self.metrics_extractor)
+        analysis_results = self.metrics_extractor.extract_metrics(modified_blocks)
 
         with open(self.metrics_path, "w") as f:
             json.dump(analysis_results, f, indent=4)
