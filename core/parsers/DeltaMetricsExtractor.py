@@ -45,103 +45,68 @@ class DeltaMetricsExtractor(BaseMetricsExtractor):
     
     def get_previous_metrics(self, modified_blocks: Dict[str, List[str]]) -> Dict[str, dict]:
         """
-        Récupère les métriques des versions précédentes des blocs Terraform modifiés.
-        Pour chaque bloc, cherche spécifiquement le dernier commit qui a modifié ce bloc.
+        Récupère les métriques des versions précédentes des blocs modifiés
+        en extrayant directement les données du commit précédent.
 
         Args:
-            modified_blocks (dict): Dictionnaire contenant les fichiers et leurs blocs modifiés.
+            modified_blocks (dict): Blocs Terraform modifiés dans le commit actuel.
 
         Returns:
-            dict: Mappings des métriques des versions précédentes.
+            dict: Métriques calculées pour ces mêmes blocs dans leur version précédente.
         """
         previous_metrics = {}
         
-        for file, blocks in modified_blocks.items():
-            logger.info(f"Analyse des blocs modifiés dans {file}")
-            previous_file_metrics = {"data": []}
+        for file in modified_blocks.keys():
+            logger.info(f"Récupération des métriques précédentes pour {file}")
             
-            # Identifier les blocs par leur contenu ou signature
-            for block_content in blocks:
-                # Extraire l'identifiant du bloc à partir de son contenu
-                # Par exemple, pour 'resource "aws_s3_bucket" "my_bucket"'
-                block_lines = block_content.strip().split("\n")
-                if not block_lines:
-                    continue
-                    
-                # Récupérer la ligne de déclaration du bloc (première ligne non vide)
-                block_declaration = next((line for line in block_lines if line.strip()), "")
-                if not block_declaration:
-                    continue
-                    
-                logger.info(f"Recherche de la dernière modification pour le bloc: {block_declaration}")
-                
-                # Utiliser git log avec -p pour trouver le dernier commit qui a modifié ce bloc spécifique
-                # L'option -S cherche les commits où une chaîne a été ajoutée ou supprimée
-                git_cmd = [
-                    "git", "log", "-p", "-1", "--format=format:%H", 
-                    "-S", block_declaration, "--", file
-                ]
-                
-                try:
-                    result = subprocess.run(
-                        git_cmd,
-                        capture_output=True,
-                        text=True,
-                        check=False
-                    )
-                    
-                    if result.returncode != 0 or not result.stdout:
-                        logger.warning(f"Impossible de trouver l'historique du bloc '{block_declaration}' dans {file}")
-                        continue
-                    
-                    # Extraire le hash du commit
-                    commit_hash = result.stdout.split("\n")[0].strip()
-                    
-                    if not commit_hash:
-                        logger.warning(f"Aucun commit précédent trouvé pour le bloc '{block_declaration}'")
-                        continue
-                    
-                    logger.info(f"Dernier commit modifiant ce bloc: {commit_hash}")
-                    
-                    # Récupérer l'état du bloc à ce commit spécifique
-                    block_state_cmd = ["git", "show", f"{commit_hash}:{file}"]
-                    block_state_result = subprocess.run(
-                        block_state_cmd,
-                        capture_output=True,
-                        text=True,
-                        check=False
-                    )
-                    
-                    if block_state_result.returncode != 0:
-                        logger.warning(f"Impossible de récupérer l'état du bloc à {commit_hash}")
-                        continue
-                    
-                    # Extraire le bloc spécifique du contenu du fichier
-                    file_content = block_state_result.stdout
-                    
-                    # Cette partie est complexe car il faut parser le contenu pour trouver le bon bloc
-                    # Pour simplifier, nous pouvons analyser tout le fichier à ce commit
-                    temp_blocks = {file: [file_content]}
-                    
-                    # Extraire les métriques du fichier à ce commit
-                    commit_metrics = self.terra_adapter.extract_metrics(temp_blocks)
-                    
-                    if file in commit_metrics and "data" in commit_metrics[file]:
-                        # Filtrer pour ne garder que les métriques du bloc qui nous intéresse
-                        for block_metrics in commit_metrics[file].get("data", []):
-                            block_id = f"{block_metrics.get('block', '')} {block_metrics.get('block_name', '')}"
-                            if block_declaration in block_id:
-                                previous_file_metrics["data"].append(block_metrics)
-                    
-                except Exception as e:
-                    logger.error(f"Erreur lors de la recherche des métriques précédentes: {e}")
+            # Récupérer le commit précédent pour ce fichier
+            previous_commit_output = subprocess.run(
+                ["git", "log", "-n", "1", "--skip", "1", "--pretty=format:%H", "--", file],
+                capture_output=True,
+                text=True,
+            )
+            previous_commit_hash = previous_commit_output.stdout.strip()
             
-            # Ajouter les métriques des blocs précédents pour ce fichier
-            if previous_file_metrics["data"]:
-                previous_metrics[file] = previous_file_metrics
+            if not previous_commit_hash:
+                logger.warning(f"Aucun commit précédent trouvé pour {file}.")
+                continue
+            
+            logger.info(f"Récupération de l'ancienne version de {file} (commit {previous_commit_hash})")
+            
+            # Récupérer le contenu du fichier dans le commit précédent
+            file_content = subprocess.run(
+                ["git", "show", f"{previous_commit_hash}:{file}"],
+                capture_output=True,
+                text=True,
+            )
+            
+            if file_content.returncode != 0:
+                logger.error(f"Impossible de récupérer l'ancienne version de {file}.")
+                continue
+            
+            # Créer des blocs à partir du contenu du fichier précédent
+            # Note: nous utilisons la même logique de splitting que dans le fichier actuel
+            temp_blocks = {file: []}
+            
+            # Nous pouvons essayer de recréer les mêmes blocs que dans le commit actuel
+            # mais dans leur état précédent en utilisant leur signature ou position
+            current_blocks = modified_blocks[file]
+            
+            # Approche simplifiée: nous extrayons tout le fichier précédent
+            # Une approche plus précise serait de faire correspondre les blocs par identifiant
+            temp_blocks[file] = file_content.stdout.split("\n\n")
+            
+            # Extraire les métriques du fichier précédent
+            file_previous_metrics = self.terra_adapter.extract_metrics(temp_blocks)
+            
+            # Ajouter à previous_metrics
+            if file in file_previous_metrics:
+                previous_metrics[file] = file_previous_metrics[file]
+            else:
+                previous_metrics[file] = {}
         
         return previous_metrics
-
+    
     def calculate_deltas(self, new_data: dict, old_data: dict) -> dict:
         """
         Calcule la différence entre les nouvelles métriques et les anciennes.
