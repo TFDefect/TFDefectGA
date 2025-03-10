@@ -64,10 +64,11 @@ resource "aws_instance" "example" {
     command = "echo Hello World"
   }
 
-  lifecycle {
-    precondition {
-      condition     = var.instance_enabled
-      error_message = "L'instance EC2 est désactivée, veuillez activer 'instance_enabled'."
+  dynamic "tag" {
+    for_each = var.instance_tags
+    content {
+      key   = tag.key
+      value = tag.value
     }
   }
 }
