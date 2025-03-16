@@ -6,6 +6,7 @@ from typing import Dict, List
 from core.parsers.BaseMetricsExtractor import BaseMetricsExtractor
 from infrastructure.adapters.external_tools.terra_metrics import TerraMetricsAdapter
 from utils.logger_utils import logger
+from core.metrics.DeltaMetric import DeltaMetric
 
 class DeltaMetricsExtractor(BaseMetricsExtractor):
     def __init__(self, jar_path: str):
@@ -109,26 +110,40 @@ class DeltaMetricsExtractor(BaseMetricsExtractor):
     
     def calculate_deltas(self, new_data: dict, old_data: dict) -> dict:
         """
-        Calcule la différence entre les nouvelles métriques et les anciennes.
+        Calcule la différence entre les nouvelles métriques et les anciennes,
+        en utilisant la convention de nommage avec suffixe _delta.
 
         Args:
             new_data (dict): Nouvelles métriques.
             old_data (dict): Anciennes métriques.
 
         Returns:
-            dict: Vecteur différentiel des métriques.
+            dict: Vecteur différentiel des métriques avec le suffixe _delta.
         """
         delta = {}
-        for metric, new_value in new_data.items():
-            if isinstance(new_value, dict):
-                old_value = old_data.get(metric, {})
-                delta[metric] = self.calculate_deltas(new_value, old_value)
-            elif isinstance(new_value, (int, float)):
-                old_value = old_data.get(metric, 0)
-                delta[metric] = new_value - old_value
-            else:
-                delta[metric] = new_value 
         
+        # Cas spécial pour le format de données TerraMetrics avec "data"
+        if "data" in new_data and isinstance(new_data["data"], list):
+            delta["data"] = []
+            old_blocks = []
+            
+            # Récupérer tous les anciens blocs
+            if "data" in old_data and isinstance(old_data["data"], list):
+                old_blocks = old_data["data"]
+                    
+            # Traiter chaque bloc dans les nouvelles données
+            for new_block in new_data["data"]:
+                # Utiliser la classe DeltaMetric pour calculer les deltas
+                delta_calculator = DeltaMetric(new_block, old_blocks)
+                block_deltas = delta_calculator.resume_delta_metrics()
+                
+                # Filtrer pour ne garder que les métriques delta et les identifiants essentiels
+                filtered_deltas = {}
+                for key, value in block_deltas.items():
+                    if key.endswith("_delta") or key in ["block", "block_name", "block_id", "block_identifiers", "defect_prediction"]:
+                        filtered_deltas[key] = value
+                        
+                delta["data"].append(filtered_deltas)
         return delta
     
     def compare_metrics(self, before_metrics: dict, after_metrics: dict) -> dict:
@@ -280,8 +295,3 @@ class DeltaMetricsExtractor(BaseMetricsExtractor):
                 
                 if not differences_found:
                     logger.info("      Aucune différence détectée pour ce bloc.")
-        
-        # Sauvegarder les différences pour le rapport
-        differences = self.compare_metrics(self.old_metrics, self.new_metrics)
-        if differences:
-            analysis_results["differences"] = differences
