@@ -1,8 +1,10 @@
 import json
-import os
 import shutil
 import sys
+import os
 import tempfile
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.parsers.metrics_extractor_factory import MetricsExtractorFactory
 from git import GitCommandError, Repo
