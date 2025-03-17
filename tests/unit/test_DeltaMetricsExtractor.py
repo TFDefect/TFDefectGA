@@ -1,38 +1,41 @@
 import subprocess
-import os
 import pytest
 from core.parsers.DeltaMetricsExtractor import DeltaMetricsExtractor
 
+
 @pytest.fixture
 def dummy_jar(tmp_path):
+    """
+    Create a dummy JAR file for testing.
+    """
     jar = tmp_path / "dummy.jar"
     jar.write_text("dummy content")
     return str(jar)
 
-# --- Tests for calculate_deltas ---
 
 def test_calculate_deltas(dummy_jar):
+    """
+    Test that calculate_deltas computes the correct delta between new and old metrics.
+    """
     extractor = DeltaMetricsExtractor(dummy_jar)
     new_data = {
         "metric1": 10,
         "metric2": 5,
-        "nested": {"metric3": 20}
+        "nested": {"metric3": 20},
     }
     old_data = {
         "metric1": 5,
         "metric2": 5,
-        "nested": {"metric3": 15}
+        "nested": {"metric3": 15},
     }
     expected = {
         "metric1": 5,
         "metric2": 0,
-        "nested": {"metric3": 5}
+        "nested": {"metric3": 5},
     }
     delta = extractor.calculate_deltas(new_data, old_data)
     assert delta == expected
 
-
-# --- Tests for extract_metrics ---
 
 def test_extract_metrics_empty(caplog, dummy_jar):
     """
@@ -46,44 +49,54 @@ def test_extract_metrics_empty(caplog, dummy_jar):
 
 def test_extract_metrics_integration(monkeypatch, dummy_jar):
     """
-    Test extract_metrics by simulating a successful extraction:
-    - The terra_adapter.extract_metrics returns new metrics.
-    - get_previous_metrics is overridden to return dummy previous metrics.
+    Test extract_metrics integration by simulating:
+      - terra_adapter.extract_metrics returns new metrics,
+      - get_previous_metrics is overridden to return dummy previous metrics.
     The expected result is the delta computed between these two.
     """
     extractor = DeltaMetricsExtractor(dummy_jar)
-    # Override the terra_adapter with a dummy adapter that returns fixed metrics.
+
+    # Define a dummy adapter that returns fixed metrics.
     class DummyAdapter:
         def extract_metrics(self, blocks):
             return {"file1.tf": {"metric": 20}}
+
     extractor.terra_adapter = DummyAdapter()
     # Override get_previous_metrics to simulate previous metrics.
     extractor.get_previous_metrics = lambda modified_blocks: {"file1.tf": {"metric": 10}}
-    
+
     modified_blocks = {"file1.tf": ["some block content"]}
     result = extractor.extract_metrics(modified_blocks)
     expected = {"file1.tf": {"metric": 10}}  # 20 - 10 = 10
     assert result == expected
 
 
-# --- Tests for compare_metrics ---
-
 def test_compare_metrics(dummy_jar):
     """
-    Test compare_metrics by providing before and after metrics with one common block that has a difference.
+    Test compare_metrics by providing before and after metrics with a common block that has differences.
     """
     extractor = DeltaMetricsExtractor(dummy_jar)
     before_metrics = {
         "file1.tf": {
             "data": [
-                {"block": "resource", "block_name": "example", "lines": 10, "other": 100}
+                {
+                    "block": "resource",
+                    "block_name": "example",
+                    "lines": 10,
+                    "other": 100,
+                }
             ]
         }
     }
     after_metrics = {
         "file1.tf": {
             "data": [
-                {"block": "resource", "block_name": "example", "lines": 15, "other": 100}
+                {
+                    "block": "resource",
+                    "block_name": "example",
+                    "lines": 15,
+                    "other": 100,
+                }
             ]
         }
     }
@@ -98,14 +111,12 @@ def test_compare_metrics(dummy_jar):
     assert differences == expected
 
 
-# --- Tests for get_previous_metrics ---
-
 def test_get_previous_metrics_no_commit(monkeypatch, caplog, dummy_jar):
     """
-    When no previous commit hash is found for a file, the method should warn and skip that file.
+    When no previous commit hash is found for a file, get_previous_metrics should warn and skip that file.
     """
     extractor = DeltaMetricsExtractor(dummy_jar)
-    # Replace terra_adapter.extract_metrics with a dummy function (should not be called in this case).
+    # Replace terra_adapter.extract_metrics with a dummy that won't be called.
     extractor.terra_adapter = type("Dummy", (), {"extract_metrics": lambda self, blocks: {}})()
 
     def fake_run(args, capture_output, text):
@@ -131,9 +142,7 @@ def test_get_previous_metrics_no_commit(monkeypatch, caplog, dummy_jar):
 def test_get_previous_metrics_success(monkeypatch, dummy_jar):
     """
     Test get_previous_metrics when a previous commit is successfully found.
-    We simulate subprocess.run calls:
-    - The first returns a fake commit hash.
-    - The second returns fake file content.
+    Simulate subprocess.run calls to return a fake commit hash and file content.
     The DummyAdapter then returns dummy metrics from the simulated previous file.
     """
     extractor = DeltaMetricsExtractor(dummy_jar)
@@ -166,38 +175,46 @@ def test_get_previous_metrics_success(monkeypatch, dummy_jar):
     assert prev_metrics == expected
 
 
-# --- Test for display_differences ---
-
 def test_display_differences(caplog, dummy_jar):
     """
     Test display_differences by setting old_metrics and new_metrics on the extractor.
-    Capture the log output to verify that the expected sections are printed and that
-    the analysis_results dict is updated with differences.
+    Capture the log output to verify that the expected sections are logged and that
+    the analysis_results dict is updated with computed differences.
     """
     extractor = DeltaMetricsExtractor(dummy_jar)
     extractor.old_metrics = {
         "file1.tf": {
             "data": [
-                {"block": "resource", "block_name": "example", "lines": 10, "other": 100}
+                {
+                    "block": "resource",
+                    "block_name": "example",
+                    "lines": 10,
+                    "other": 100,
+                }
             ]
         }
     }
     extractor.new_metrics = {
         "file1.tf": {
             "data": [
-                {"block": "resource", "block_name": "example", "lines": 15, "other": 100}
+                {
+                    "block": "resource",
+                    "block_name": "example",
+                    "lines": 15,
+                    "other": 100,
+                }
             ]
         }
     }
     analysis_results = {}
     extractor.display_differences(analysis_results)
     logged = caplog.text
-    # Verify that key sections are logged
+    # Verify that key sections are logged.
     assert "Comparaison des métriques avant et après les changements" in logged
     assert "AVANT le changement" in logged
     assert "APRÈS le changement" in logged
     assert "DIFFÉRENCES" in logged
-    # Check that a difference in "lines" is reported (the arrow and delta may include symbols)
+    # Check that a difference in "lines" is reported (the arrow and delta may include symbols).
     assert "10 → 15" in logged or "15 → 10" not in logged
     # The analysis_results dict should now contain a "differences" key with computed differences.
     expected_diff = {
