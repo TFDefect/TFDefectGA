@@ -45,7 +45,7 @@ TFDefectGA est un outil d'analyse automatisée qui permet de détecter des anoma
 	# Sur Windows
 	.\venv\Scripts\activate
 	```
-3. Installer les dépendances :
+3. **Installer les dépendances :**
 	```bash
 	pip install --upgrade pip
 	pip install -r requirements.txt
