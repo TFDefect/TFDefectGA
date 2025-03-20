@@ -61,7 +61,7 @@ resource "aws_instance" "example" {
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
-    command = "echo Hello World"
+    command = "echo Hello"
   }
 
   dynamic "tag" {
@@ -69,6 +69,16 @@ resource "aws_instance" "example" {
     content {
       key   = tag.key
       value = tag.value
+    }
+  }
+
+  dynamic "ebs_block_device" {
+    for_each = var.ebs_volumes
+    content {
+      device_name = ebs_block_device.value.device_name
+      volume_size = ebs_block_device.value.volume_size
+      volume_type = lookup(ebs_block_device.value, "volume_type", "gp2")
+      encrypted   = lookup(ebs_block_device.value, "encrypted", false)
     }
   }
 }
