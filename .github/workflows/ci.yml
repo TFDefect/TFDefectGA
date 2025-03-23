@@ -1,4 +1,4 @@
-name: 🔍 Analyse Terraform avec TFDefectGA
+name: Analyse Terraform avec TFDefectGA 🚀
 
 on:
   push:
@@ -7,62 +7,19 @@ on:
   pull_request:
     paths:
       - "**.tf"
+  workflow_dispatch:
 
 jobs:
-  analyze-defects:
+  tfdefect-analysis:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout du code
+      - name: Cloner le dépôt
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Cache venv Python
-        uses: actions/cache@v3
+      - name: Lancer TFDefectGA
+        uses: ./
         with:
-          path: venv
-          key: python-venv-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            python-venv-${{ runner.os }}-
-
-      - name: Installer Python et dépendances
-        run: |
-          if [ ! -d "venv" ]; then
-            python -m venv venv
-          fi
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -e .
-
-      - name: Cache Java et TerraMetrics
-        id: cache-java
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.terraform
-            /usr/lib/jvm/java-11-openjdk-amd64
-          key: terraform-java-${{ runner.os }}
-
-      - name: Installer Java (si nécessaire)
-        if: steps.cache-java.outputs.cache-hit != 'true'
-        run: |
-          sudo apt update
-          sudo apt install -y openjdk-11-jre
-
-      - name: Vérifier Terraform (optionnel)
-        run: terraform version || echo "Terraform non installé, mais ce n'est pas bloquant."
-
-      - name: Lancer l'analyse TFDefectGA
-        run: |
-          source venv/bin/activate
-          python app/action_runner.py --model dummy
-
-      - name: Upload des artefacts (HTML + JSON)
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfdefectga-results
-          path: |
-            out/reports/*.html
-            out/defect_history.json
+          model: dummy
