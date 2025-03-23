@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
+
 class BaseMetricsExtractor(ABC):
     """
     Classe abstraite pour les extracteurs de métriques Terraform.
