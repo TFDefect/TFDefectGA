@@ -1,4 +1,4 @@
-name: Terraform Bug Detection CI
+name: 🔍 Analyse Terraform avec TFDefectGA
 
 on:
   push:
@@ -9,16 +9,16 @@ on:
       - "**.tf"
 
 jobs:
-  analyze-terraform:
+  analyze-defects:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout du repository
+      - name: Checkout du code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Utiliser le cache pour Python venv
+      - name: Cache venv Python
         uses: actions/cache@v3
         with:
           path: venv
@@ -26,18 +26,18 @@ jobs:
           restore-keys: |
             python-venv-${{ runner.os }}-
 
-      - name: Installer Python et dépendances (si non en cache)
+      - name: Installer Python et dépendances
         run: |
           if [ ! -d "venv" ]; then
             python -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install -r requirements.txt
-            pip install -e .
           fi
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
 
-      - name: Utiliser le cache pour Terraform et Java
-        id: cache-terraform-java
+      - name: Cache Java et TerraMetrics
+        id: cache-java
         uses: actions/cache@v3
         with:
           path: |
@@ -45,41 +45,24 @@ jobs:
             /usr/lib/jvm/java-11-openjdk-amd64
           key: terraform-java-${{ runner.os }}
 
-      - name: Installer Java 11 (si non en cache)
-        if: steps.cache-terraform-java.outputs.cache-hit != 'true'
+      - name: Installer Java (si nécessaire)
+        if: steps.cache-java.outputs.cache-hit != 'true'
         run: |
           sudo apt update
-          sudo apt install openjdk-11-jre -y
+          sudo apt install -y openjdk-11-jre
 
-      - name: Vérifier si Terraform est installé
-        run: terraform version || echo "Terraform n'est pas installé"
+      - name: Vérifier Terraform (optionnel)
+        run: terraform version || echo "Terraform non installé, mais ce n'est pas bloquant."
 
-      - name: Installer Terraform CLI (si non en cache)
-        run: |
-          if ! command -v terraform &> /dev/null; then
-            echo "Terraform non trouvé, installation en cours..."
-            sudo apt update
-            sudo apt install -y gnupg software-properties-common curl
-            curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-            sudo apt update && sudo apt install -y terraform
-          else
-            echo "Terraform est déjà installé"
-          fi
-
-      - name: Vérifier Terraform après installation
-        run: terraform version
-
-      - name: Formatter et valider Terraform
-        run: terraform fmt -recursive
-
-      - name: Exécuter l'analyse Terraform
+      - name: Lancer l'analyse TFDefectGA
         run: |
           source venv/bin/activate
-          python app/action_runner.py HEAD
+          python app/action_runner.py --model dummy
 
-      - name: Publier les résultats comme artefact
+      - name: Upload des artefacts (HTML + JSON)
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-analysis-results
-          path: output.json
+          name: tfdefectga-results
+          path: |
+            out/reports/*.html
+            out/defect_history.json

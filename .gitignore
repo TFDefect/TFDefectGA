@@ -47,6 +47,9 @@ models/
 *.joblib
 
 output.json
+code_metrics.json
+delta_metrics.json
+process_metrics.json
 
 # Ignore les fichiers et dossiers Terraform temporaires
 .terraform/

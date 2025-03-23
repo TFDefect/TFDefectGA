@@ -1,0 +1,99 @@
+@startuml
+
+class ActionRunner {
+    + main()
+    + save_results_to_file(results, output_path)
+    + verify_jar_path(jar_path)
+    + clone_repository(repo_url)
+}
+
+class AnalyzeTFCode {
+    + __init__(jar_path: str)
+    + analyze_blocks(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+}
+
+class DetectTFChanges {
+    + __init__(repo_path: str)
+    + get_modified_tf_blocks(commit_hash: str): Dict[str, List[str]]
+}
+
+class GitChanges {
+    + __init__(repo_path: str)
+    + get_modified_blocks(commit_hash: str): Dict[str, List[str]]
+}
+
+class GitAdapter {
+    + __init__(repo_path: str)
+    + verify_git_repo()
+    + get_modified_files(commit_hash: str): List[Tuple[str, str]]
+    + get_changed_lines(commit_hash: str, file_path: str): Dict[int, Tuple[int, str]]
+}
+
+class TerraformParser {
+    + __init__(file_path: str)
+    + find_block(changed_line: int): str
+    + find_block_bounds(line_number: int): Tuple[int, int]
+}
+
+abstract class BaseMetricsExtractor {
+    + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+}
+
+class TerraMetricsAdapter {
+    + __init__(jar_path: str)
+    + analyze_blocks(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+    + analyze_repo(repo_path: str): Dict[str, dict]
+}
+
+class DeltaMetricsAdapter {
+    + __init__(repo_path: str)
+    + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+}
+
+class ProcessMetricsAdapter {
+    + __init__(repo_path: str)
+    + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+}
+
+abstract class BaseModel {
+    + predict(input_data: List[float]) : Any
+}
+
+class SklearnModel {
+    + __init__(model_path: str)
+    + predict(input_data: List[float]) : Any
+}
+
+class DummyModel {
+    + __init__(model_path: str)
+    + predict(input_data: List[float]) : List[str]
+}
+
+class ReportGenerator {
+    + __init__(results: List[dict])
+    + generate_text_report(): str
+    + generate_json_report(): str
+}
+
+class MetricsExtractorFactory {
+    + get_extractor(extractor_type: str, output_path: str): BaseMetricsExtractor
+}
+
+AnalyzeTFCode <-u- ActionRunner : calls
+DetectTFChanges <-u-   ActionRunner: calls
+GitChanges <-u-  DetectTFChanges: uses
+GitChanges -down-> GitAdapter : depends on
+GitAdapter -down-> TerraformParser : parses tf files
+
+AnalyzeTFCode -down-> BaseMetricsExtractor : uses
+TerraMetricsAdapter -u--|> BaseMetricsExtractor
+DeltaMetricsAdapter -u-|> BaseMetricsExtractor
+ProcessMetricsAdapter -u--|> BaseMetricsExtractor
+
+MetricsExtractorFactory ..> BaseMetricsExtractor
+
+AnalyzeTFCode -down-> BaseModel : uses
+SklearnModel -u-|> BaseModel
+DummyModel -u-|> BaseModel
+AnalyzeTFCode -down-> ReportGenerator : generates reports
+@enduml
