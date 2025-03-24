@@ -10,7 +10,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'ghcr.io/abdelhaouari/tfdefectga:latest'
+  image: 'ghcr.io/abdelhaouari/tfdefectga:v1'
   args:
   - '--model'
   - ${{ inputs.model }}
