@@ -17,4 +17,6 @@ DEFECT_HISTORY_PATH = os.path.join(OUTPUT_DIR, "defect_history.json")
 
 REPO_PATH = os.environ.get("GITHUB_WORKSPACE", ".")
 
+REPORT_TEMPLATE = os.environ.get("REPORT_TEMPLATE", "report_template.html")
+
 REPORTS_OUTPUT_FOLDER = os.path.join(OUTPUT_DIR, "reports")
