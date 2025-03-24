@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import subprocess
 
 import config
 
@@ -17,6 +18,11 @@ from infrastructure.ml.defect_history_manager import (load_defect_history,
                                                       update_defect_history)
 from infrastructure.ml.model_factory import ModelFactory
 from utils.logger_utils import logger
+
+subprocess.run(
+    ["git", "config", "--global", "--add", "safe.directory", "/github/workspace"],
+    check=False,
+)
 
 
 def verify_jar():
