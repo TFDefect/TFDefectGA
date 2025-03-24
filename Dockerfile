@@ -11,8 +11,7 @@ WORKDIR /app
 COPY . .
 
 # Ajouter le dossier comme "safe" pour Git
-RUN git config --global --add safe.directory /app && \
-    git config --global --add safe.directory /github/workspace
+RUN git config --global --add safe.directory /github/workspace
 
 # Installer les dépendances
 RUN pip install --upgrade pip && \
