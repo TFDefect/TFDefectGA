@@ -42,7 +42,7 @@ L'architecture de l'Action GitHub TFDefect se compose des 4 couches suivantes:
 - **Couche données**: Elle contient une cache qui stocke les données calculées temporairement pour optimiser les performances et éviter des calculs inutiles.
 - **Couche domaine** : C’est le cœur de l’application, où sont définies les règles métiers et les modèles de données.
   - `Models`: Regroupe les modèles d’apprentissage automatique utilisés pour l’analyse des métriques. On y retrouve le module `skLearnModel` qui Implémente un modèle basé sur scikit-learn pour prédire des anomalies ou tendances dans les métriques Terraform. On y retrouve également le module `DummyModel`, qui est un modèle naïf utilisé pour faire des tests.
-- **Couche infrastructure** : Elle gère les interactions avec des services externes (Git, fichiers Terraform, etc.). Elle contient les adaptateurs `GitChanges`, `GitAdapter` et `TerraformParser`. Elle contient également le bloc `MetricsExtractors` qui regroupe les 3 méthodes de calcul des métriques suivantes: `TerraMetricsAdapter`, `ProcessMetricsAdapter` et `DeltaMetricsAdapter`. De plus, elle contient MetricsExtractorFactory, qui permet d'utiliser l'extracteur de métriques choisi par un utilisateur.
+- **Couche infrastructure** : Elle gère les interactions avec des services externes (Git, fichiers Terraform, etc.). Elle contient les adaptateurs `GitChanges`, `GitAdapter` et `TerraformParser`. Elle contient également le bloc `MetricsExtractors` qui regroupe les 3 méthodes de calcul des métriques suivantes: `CodeMetricsAdapter`, `ProcessMetricsAdapter` et `DeltaMetricsAdapter`. Aussi, elle contient `ProcessMetrics` qui permet de faire les calculs pour l'extracteur `ProcessMetricsAdapter`. De plus, elle contient `MetricsExtractorFactory`, qui permet d'utiliser l'extracteur de métriques choisi par un utilisateur, et `ModelFactory` qui permet de choisir le modèle de Machine Learning utilisé dans l'analyse.
 - **Autre (externe)**:
   - `TerraMetrics`: Outil qui permet de calculer des métriques pour un fichier Terraform 
 
@@ -64,15 +64,17 @@ Le diagramme de classes suivant illustre la structure du système en mettant en 
 - **BaseModel** : Classe abstraite pour un modèle de prédiction.  
 - **SklearnModel** : Étend `BaseModel` en utilisant un modèle basé sur `scikit-learn` pour effectuer des prédictions sur des données d'entrée. 
 - **DummyModel** : Étend `BaseModel` en utilisant un modèle fictif utilisé pour les tests.
+- **FeatureVectorBuilder**: Cette classe est responsable de construire des vecteurs de caractéristiques (features) pour les blocs Terraform modifiés. Elle combine trois types de métriques: code, delta et process.
 - **ReportGenerator** : Génère des rapports textuels ou JSON à partir des résultats de l'analyse.  
 - **GitChanges** : Récupère les fichiers modifiés dans un commit donné à l’aide de `GitAdapter`.  
 - **GitAdapter** : Interface permettant d'interagir avec un dépôt Git (vérification, extraction des fichiers modifiés et des lignes de code changées).  
 - **TerraformParser** : Analyse les fichiers Terraform pour identifier et extraire des blocs spécifiques.  
 - **BaseMetricsExtractor**: Classe abstraite de base pour les méthodes de calcul de métriques.
-- **TerraMetricsAdapter** : Calcule des métriques spécifiques à partir des blocs Terraform à l'aide de TerraMetrics.  
-- **ProcessMetricsAdapter**: Autre méthode de calcul des métriques spécifiques à partir des blocs Terraform.
-- **DeltaMetricsAdapter**: Autre méthode de calcul des métriques spécifiques à partir des blocs Terraform.
+- **CodeMetricsAdapter** : Calcule des métriques statiques à partir des blocs Terraform à l'aide de TerraMetrics.  
+- **ProcessMetricsAdapter**: Extrait les métriques liées au processus de développement (historique, auteurs)
+- **DeltaMetricsAdapter**: Compare les métriques avant/après un commit
 - **MetricsExtractorFactory**: Classe permettant de retourner une instance de l'extracteur de métriques choisi par le développeur lorsqu'il veut de lancer l'Action GitHub.
+- **ModelFactory**: Classe permettant de retourner une instance du modèle de Machine Learning choisi par le développeur lorsqu'il veut de lancer l'Action GitHub.
   
 <div style="page-break-before:always"></div>
 
@@ -84,6 +86,9 @@ Le projet est développé en Python. Ce langage est utilisé pour exécuter l’
 
 #### Gestion des Dépôts Git
 - **GitPython** : Permet d’interagir avec les dépôts Git, récupérer les fichiers modifiés et extraire l’historique des commits.  
+
+#### Outils d'analyse et traitement
+- **PyDriller**: bibliothèque Python extraire des informations sur un dépôt GitHub telles que les commits, les développeurs qui contribuent et les modifications.
 
 #### Gestion des Logs et Exécution de Commandes 
 - **Logging** : Utilisé pour enregistrer et suivre les événements et erreurs du programme.  

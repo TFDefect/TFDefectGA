@@ -1,4 +1,5 @@
 @startuml
+
 skinparam linetype ortho
 
 node "TFDefect GitHub Action" {
@@ -27,12 +28,14 @@ node "TFDefect GitHub Action" {
         package "GitAdapter" {}
         package "TerraformParser" {}
         frame "MetricsExtractors" {
-            package "TerraMetricsAdapter" {}
+            package "CodeMetricsAdapter" {}
             package "ProcessMetricsAdapter" {}
             package "DeltaMetricsAdapter" {}
         }
+        package "ProcessMetrics" {}
+        package "ContributionBuilder" {}
         package "MetricsExtractorFactory" {}
-        
+        package "FeatureVectorBuilder" {}
     }
 
     rectangle "Couche données" #D3D3D3 {
@@ -54,10 +57,13 @@ GitChanges ..> GitAdapter : "dépend de"
 GitAdapter ..> TerraformParser : "parse des fichiers"
 
 AnalyzeTFCode .down.> Cache: Stocke les \n données calculées
-AnalyzeTFCode ...> MetricsExtractors: utilise
-TerraMetricsAdapter ....> TerraMetrics: utilise
+AnalyzeTFCode ..> MetricsExtractors: utilise
+CodeMetricsAdapter ....> TerraMetrics: utilise
 
 ModelFactory .down..> Models: Crée une instance de 
 
 MetricsExtractorFactory ...> MetricsExtractors: Crée une instance de
+ProcessMetricsAdapter ...> ProcessMetrics: utilise
+ProcessMetricsAdapter ...> ContributionBuilder: utilise
+
 @enduml
