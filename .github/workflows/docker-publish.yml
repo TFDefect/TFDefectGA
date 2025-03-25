@@ -1,0 +1,38 @@
+name: Publier l'image Docker 🚀
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - Dockerfile
+      - requirements.txt
+      - setup.py
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  docker-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cloner le dépôt
+        uses: actions/checkout@v3
+
+      - name: 🔑 Connexion à GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: 🛠️ Build l'image
+        run: |
+          docker build -t tfdefectga:latest .
+          docker tag tfdefectga:latest ghcr.io/${{ github.repository_owner }}/tfdefectga:latest
+          docker tag tfdefectga:latest ghcr.io/${{ github.repository_owner }}/tfdefectga:v1
+
+      - name: 🚀 Push vers GHCR
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/tfdefectga:latest
+          docker push ghcr.io/${{ github.repository_owner }}/tfdefectga:v1

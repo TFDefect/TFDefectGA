@@ -24,6 +24,11 @@
             "commit": "fc2306189ac4c0edf793c0d6d8cc25e3a50c49a0",
             "fault_prone": 0,
             "date": "2025-03-23T14:20:24.159020"
+        },
+        {
+            "commit": "1081abdfe5c22f871b9135080a94fbe97663f0e8",
+            "fault_prone": 1,
+            "date": "2025-03-24T16:30:27.988345"
         }
     ],
     "data\\main.tf::aws_instance.example": [
@@ -51,6 +56,11 @@
             "commit": "fc2306189ac4c0edf793c0d6d8cc25e3a50c49a0",
             "fault_prone": 0,
             "date": "2025-03-23T14:20:24.159020"
+        },
+        {
+            "commit": "1081abdfe5c22f871b9135080a94fbe97663f0e8",
+            "fault_prone": 0,
+            "date": "2025-03-24T16:30:27.988345"
         }
     ],
     "data\\main.tf::aws_s3_bucket.my_bucket": [
