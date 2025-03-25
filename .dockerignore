@@ -1,0 +1,21 @@
+# Exclure les fichiers compilés et caches Python
+__pycache__
+*.py[cod]
+*$py.class
+
+# Exclure les environnements virtuels
+venv/
+.env/
+ENV/
+
+# Exclure les fichiers de configuration Git
+.git
+.gitignore
+
+# Exclure les dossiers de tests (si tu ne veux pas les inclure dans l'image)
+tests/
+
+# Exclure les dossiers de build et distribution
+build/
+dist/
+*.egg-info

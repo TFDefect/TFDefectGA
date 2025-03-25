@@ -1,8 +1,10 @@
 from typing import Dict, List
 
 from core.parsers.base_metrics_extractor import BaseMetricsExtractor
-from core.parsers.contribution_builder import (get_contribution,
-                                               get_previous_contributions)
+from core.parsers.contribution_builder import (
+    get_contribution,
+    get_previous_contributions,
+)
 from core.parsers.process_metric_calculation import ProcessMetrics
 from infrastructure.ml.defect_history_manager import load_defect_history
 from utils.block_utils import extract_block_identifier

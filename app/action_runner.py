@@ -1,11 +1,14 @@
 import argparse
 import json
 import os
+import subprocess
 
 import config
 
-from core.parsers.contribution_builder import (get_contribution,
-                                               get_previous_contributions)
+from core.parsers.contribution_builder import (
+    get_contribution,
+    get_previous_contributions,
+)
 from core.parsers.metrics_extractor_factory import MetricsExtractorFactory
 from core.parsers.process_metric_calculation import ProcessMetrics
 from core.use_cases.analyze_tf_code import AnalyzeTFCode
@@ -13,10 +16,17 @@ from core.use_cases.detect_tf_changes import DetectTFChanges
 from core.use_cases.feature_vector_builder import FeatureVectorBuilder
 from core.use_cases.report_generator import ReportGenerator
 from infrastructure.git.git_adapter import GitAdapter
-from infrastructure.ml.defect_history_manager import (load_defect_history,
-                                                      update_defect_history)
+from infrastructure.ml.defect_history_manager import (
+    load_defect_history,
+    update_defect_history,
+)
 from infrastructure.ml.model_factory import ModelFactory
 from utils.logger_utils import logger
+
+subprocess.run(
+    ["git", "config", "--global", "--add", "safe.directory", "/github/workspace"],
+    check=False,
+)
 
 
 def verify_jar():
@@ -52,6 +62,10 @@ def run_prediction_flow(model_type: str):
     defect_history = load_defect_history()
     print("=" * 60)
     print("📊 Résultats de la prédiction :")
+
+    total = 0
+    defectives = 0
+
     for block_id, label in predictions.items():
         try:
             file_path, block_identifiers = block_id.split("::", 1)
@@ -62,13 +76,25 @@ def run_prediction_flow(model_type: str):
             if contrib:
                 pm = ProcessMetrics(contrib, previous)
                 count = pm.num_defects_in_block_before()
-                print(
-                    f"    - {block_id} -> fault_prone = {label} | num_defects_before = {count}"
-                )
+
+                status_icon = "🔴" if label else "🟢"
+                status_label = "Defective" if label else "Clean"
+
+                print(f"\n{status_icon} Block: {block_id}")
+                print(f"    -> État: {status_label}")
+                print(f"    -> Défauts précédents: {count}")
+
+                total += 1
+                defectives += 1 if label else 0
             else:
                 logger.warning(f"Contribution introuvable pour {block_id}")
         except Exception as e:
             logger.error(f"Erreur sur le bloc {block_id} : {e}")
+
+    print("\n" + "=" * 60)
+    print(
+        f"🧾 Résumé : {total} blocs analysés - {defectives} defectives, {total - defectives} clean"
+    )
     print("=" * 60)
 
 

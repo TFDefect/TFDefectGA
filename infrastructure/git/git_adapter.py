@@ -40,7 +40,7 @@ class GitAdapter:
             )
         except Exception as e:
             logger.error(
-                f"ERREUR : Ce répertoire n'est pas un dépôt Git valide ou il est vide. Détails : {str(e)}"
+                f"Ce répertoire n'est pas un dépôt Git valide ou il est vide. Détails : {str(e)}"
             )
             exit(1)
 

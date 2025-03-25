@@ -11,7 +11,7 @@ class ReportGenerator:
     def __init__(self):
         os.makedirs(config.REPORTS_OUTPUT_FOLDER, exist_ok=True)
         self.env = Environment(loader=FileSystemLoader(config.TEMPLATE_FOLDER))
-        self.template = self.env.get_template("report_template.html")
+        self.template = self.env.get_template(config.REPORT_TEMPLATE)
 
     def generate(self, predictions: dict) -> str:
         """
