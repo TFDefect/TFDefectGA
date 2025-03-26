@@ -1,5 +1,5 @@
 import re
-from typing import Tuple
+from typing import List, Tuple
 
 
 class TerraformParser:
@@ -19,6 +19,26 @@ class TerraformParser:
                 f"Le fichier Terraform {file_path} est vide. Analyse ignorée."
             )
 
+    @classmethod
+    def from_string(cls, file_content: str):
+        """
+        Initialise un parser Terraform à partir d'une chaîne de caractères
+        représentant le contenu d'un fichier Terraform.
+
+        Args:
+            file_content (str): Le contenu du fichier Terraform sous forme de string.
+
+        Returns:
+            TerraformParser: Une instance de la classe initialisée avec ce contenu.
+        """
+        instance = cls.__new__(cls)
+        instance.lines = file_content.splitlines()
+
+        if not instance.lines:
+            raise ValueError("Le contenu Terraform fourni est vide. Analyse ignorée.")
+
+        return instance
+
     def find_block(self, changed_line: int) -> str:
         """
         Trouve le bloc Terraform englobant une ligne modifiée.
@@ -33,7 +53,7 @@ class TerraformParser:
             return ""
 
         start, end = self._find_block_bounds(changed_line)
-        return "".join(self.lines[start : end + 1])
+        return "\n".join(self.lines[start : end + 1])
 
     def _find_block_bounds(self, line_number: int) -> Tuple[int, int]:
         """
@@ -44,13 +64,6 @@ class TerraformParser:
 
         Returns:
             Tuple[int, int]: Les indices de début et de fin du bloc Terraform.
-
-        Explication de l'algorithme:
-        - L'algorithme commence par définir les indices de début et de fin du bloc comme étant la ligne donnée.
-        - Il remonte ensuite les lignes jusqu'à trouver le début d'un bloc Terraform (défini par des mots-clés comme resource, variable, etc.).
-        - Ensuite, il parcourt les lignes à partir du début du bloc pour trouver la fin du bloc en comptant les accolades `{}`.
-        - Il ignore les lignes de commentaires et les lignes à l'intérieur des commentaires multi-lignes.
-        - Le bloc se termine lorsque le nombre d'accolades ouvrantes et fermantes est équilibré.
         """
         if line_number >= len(self.lines):
             raise IndexError(
@@ -61,7 +74,8 @@ class TerraformParser:
 
         # Remonter jusqu'au début du bloc Terraform
         while start > 0 and not re.match(
-            r"^\s*(resource|variable|module|output|provider|data)\s", self.lines[start]
+            r"^\s*(resource|variable|module|output|provider|data|terraform)\s",
+            self.lines[start],
         ):
             start -= 1
 
@@ -93,3 +107,20 @@ class TerraformParser:
                 break
 
         return start, end
+
+    def find_blocks(self, changed_lines: List[int]) -> List[str]:
+        """
+        Trouve tous les blocs Terraform englobant une liste de lignes modifiées.
+
+        Args:
+            changed_lines (List[int]): Liste des lignes modifiées.
+
+        Returns:
+            List[str]: Liste des blocs Terraform impactés.
+        """
+        unique_blocks = set()
+        for line in changed_lines:
+            block = self.find_block(line)
+            if block:
+                unique_blocks.add(block)
+        return list(unique_blocks)

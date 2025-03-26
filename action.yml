@@ -1,0 +1,20 @@
+name: 'TFDefectGA'
+description: 'Analyse le code Terraform et prédit les défauts avec des métriques et un modèle ML.'
+author: 'PFE17H25'
+
+inputs:
+  model:
+    description: 'Nom du modèle à utiliser (dummy, etc.)'
+    required: false
+    default: 'dummy'
+
+runs:
+  using: 'docker'
+  image: 'ghcr.io/abdelhaouari/tfdefectga:v1'
+  args:
+  - '--model'
+  - ${{ inputs.model }}
+
+branding:
+  icon: 'activity'
+  color: 'blue'

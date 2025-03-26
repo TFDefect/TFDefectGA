@@ -1,146 +1,292 @@
+import argparse
 import json
 import os
-import shutil
-import sys
-import tempfile
+import subprocess
 
+import config
+
+from core.parsers.contribution_builder import (
+    get_contribution,
+    get_previous_contributions,
+)
 from core.parsers.metrics_extractor_factory import MetricsExtractorFactory
-from git import GitCommandError, Repo
-
-from config.config import *
+from core.parsers.process_metric_calculation import ProcessMetrics
 from core.use_cases.analyze_tf_code import AnalyzeTFCode
 from core.use_cases.detect_tf_changes import DetectTFChanges
-from infrastructure.adapters.git.git_adapter import GitAdapter
+from core.use_cases.feature_vector_builder import FeatureVectorBuilder
+from core.use_cases.report_generator import ReportGenerator
+from infrastructure.git.git_adapter import GitAdapter
+from infrastructure.ml.defect_history_manager import (
+    load_defect_history,
+    update_defect_history,
+)
+from infrastructure.ml.model_factory import ModelFactory
 from utils.logger_utils import logger
 
-
-def save_results(results, output_path=OUTPUT_JSON_PATH):
-    """Sauvegarde les résultats de l'analyse dans un fichier JSON."""
-    try:
-        with open(output_path, "w") as json_file:
-            json.dump(results, json_file, indent=4)
-        logger.info(f"Résultats sauvegardés : `{output_path}`")
-    except Exception as e:
-        logger.error(f"Erreur de sauvegarde : {e}")
+subprocess.run(
+    ["git", "config", "--global", "--add", "safe.directory", "/github/workspace"],
+    check=False,
+)
 
 
 def verify_jar():
-    """Vérifie la présence de TerraMetrics.jar."""
-    if not os.path.exists(TERRAMETRICS_JAR_PATH):
-        logger.error(f"TerraMetrics JAR introuvable : `{TERRAMETRICS_JAR_PATH}`")
+    """Vérifie la présence du fichier JAR TerraMetrics."""
+    if not os.path.exists(config.TERRAMETRICS_JAR_PATH):
+        logger.error(f"TerraMetrics JAR introuvable : `{config.TERRAMETRICS_JAR_PATH}`")
         raise SystemExit(1)
 
 
-def clone_repo_if_needed(repo_url):
-    """Clone un repo distant si nécessaire et retourne son chemin."""
-    if repo_url:
-        temp_dir = tempfile.mkdtemp()
+def run_prediction_flow(model_type: str):
+    logger.info("Construction des vecteurs de caractéristiques...")
+    builder = FeatureVectorBuilder(config.REPO_PATH, config.TERRAMETRICS_JAR_PATH)
+    vectors = builder.build_vectors()
+
+    if not vectors:
+        logger.warning("Aucun vecteur généré - aucun bloc Terraform modifié.")
+        return
+
+    logger.info(f"Chargement du modèle : {model_type}")
+    model = ModelFactory.get_model(model_type)
+
+    logger.info("Prédictions des défauts...")
+    predictions = model.predict(vectors)
+
+    logger.info(f"Sauvegarde des prédictions dans `{config.DEFECT_HISTORY_PATH}`")
+    update_defect_history(predictions)
+
+    # Génération du rapport HTML
+    report_path = ReportGenerator().generate(predictions)
+    logger.info(f"Rapport disponible ici : {report_path}")
+
+    # Affichage avec historique
+    defect_history = load_defect_history()
+    print("=" * 60)
+    print("📊 Résultats de la prédiction :")
+
+    total = 0
+    defectives = 0
+
+    for block_id, label in predictions.items():
         try:
-            logger.info(f"Clonage du repo `{repo_url}`...")
-            Repo.clone_from(repo_url, temp_dir)
-            return temp_dir
-        except GitCommandError as e:
-            logger.error(f"Erreur de clonage : {e}")
-            shutil.rmtree(temp_dir, ignore_errors=True)
-            raise SystemExit(1)
-    return Repo(search_parent_directories=True).working_tree_dir
+            file_path, block_identifiers = block_id.split("::", 1)
+            contrib = get_contribution(config.REPO_PATH, file_path, block_identifiers)
+            previous = get_previous_contributions(
+                config.REPO_PATH, file_path, block_identifiers, defect_history
+            )
+            if contrib:
+                pm = ProcessMetrics(contrib, previous)
+                count = pm.num_defects_in_block_before()
+
+                status_icon = "🔴" if label else "🟢"
+                status_label = "Defective" if label else "Clean"
+
+                print(f"\n{status_icon} Block: {block_id}")
+                print(f"    -> État: {status_label}")
+                print(f"    -> Défauts précédents: {count}")
+
+                total += 1
+                defectives += 1 if label else 0
+            else:
+                logger.warning(f"Contribution introuvable pour {block_id}")
+        except Exception as e:
+            logger.error(f"Erreur sur le bloc {block_id} : {e}")
+
+    print("\n" + "=" * 60)
+    print(
+        f"🧾 Résumé : {total} blocs analysés - {defectives} defectives, {total - defectives} clean"
+    )
+    print("=" * 60)
 
 
-def detect_and_analyze(commit_hash, repo_path, extractor_type):
-    """Détecte les fichiers Terraform modifiés et les analyse avec TerraMetrics et ML."""
-    detect_changes = DetectTFChanges(repo_path)
-    metrics_extractor = MetricsExtractorFactory.get_extractor(extractor_type, TERRAMETRICS_JAR_PATH)
-    analyze_code = AnalyzeTFCode(TERRAMETRICS_JAR_PATH, OUTPUT_JSON_PATH, metrics_extractor)
+def generate_report_from_history():
+    """
+    Génère un rapport HTML uniquement à partir du fichier defect_history.json,
+    sans relancer d'analyse ou de prédiction.
+    """
+    history = load_defect_history()
+
+    if not history:
+        logger.warning("Impossible de générer le rapport : defect_history.json vide.")
+        return
+
+    # Construit les prédictions à partir des dernières entrées de l'historique
+    latest_predictions = {
+        block_id: entries[-1]["fault_prone"]
+        for block_id, entries in history.items()
+        if entries
+    }
+
+    report_path = ReportGenerator().generate(latest_predictions)
+    logger.info(f"Rapport généré depuis l'historique : {report_path}")
+
+
+def detect_and_analyze(extractor_type):
+    """
+    Détecte les blocs Terraform modifiés et exécute l'analyse des métriques.
+
+    Args:
+        extractor_type (str): Type d'extracteur de métriques à utiliser.
+
+    Returns:
+        dict: Résultats de l'analyse des métriques.
+    """
+    logger.info(f"Démarrage de l'analyse avec l'extracteur [{extractor_type}]...")
+
+    detect_changes = DetectTFChanges(config.REPO_PATH)
+
+    if extractor_type == "delta":
+        modified_blocks = detect_changes.get_changed_blocks()
+    else:
+        modified_blocks = detect_changes.get_modified_tf_blocks()
+
+    if not modified_blocks:
+        logger.warning("Aucun bloc Terraform modifié détecté.")
+        return {}
 
     try:
-        logger.info("Extraction des modifications Terraform...")
-        modified_blocks = detect_changes.get_modified_tf_blocks(commit_hash)
-
-        if not modified_blocks:
-            logger.info("Aucun fichier Terraform modifié.")
-            raise SystemExit(0)
-
-        logger.info(
-            "Analyse des fichiers modifiés avec TerraMetrics et prédiction ML..."
+        metrics_extractor = MetricsExtractorFactory.get_extractor(
+            extractor_type, config.TERRAMETRICS_JAR_PATH
         )
-        analysis_results = analyze_code.analyze_blocks(modified_blocks)
-
-        if extractor_type == "delta":
-            metrics_extractor.display_differences(analysis_results)
-
-        return analysis_results
-
-    except Exception as e:
-        logger.error(f"Erreur d'analyse : {e}")
+    except (ValueError, NotImplementedError) as e:
+        logger.error(f"Erreur lors de la sélection de l'extracteur : {e}")
         raise SystemExit(1)
 
+    analyzer = AnalyzeTFCode(config.REPO_PATH, metrics_extractor)
+    metrics_results = analyzer.analyze_blocks(modified_blocks)
 
-def display_analysis_results(results):
-    """Affiche les résultats de l'analyse Terraform avec prédictions ML."""
-    logger.info("\n📊 Résumé de l'analyse des fichiers Terraform :")
+    logger.info("Analyse terminée avec succès.")
+    return metrics_results
+
+
+def save_results(results, output_path):
+    """
+    Sauvegarde les résultats de l'analyse dans un fichier JSON.
+
+    Args:
+        results (dict): Résultats de l'analyse des métriques.
+        output_path (str): Chemin du fichier de sortie JSON.
+    """
+    try:
+        with open(output_path, "w") as json_file:
+            json.dump(results, json_file, indent=4)
+        logger.info(f"Résultats sauvegardés dans `{output_path}`")
+    except Exception as e:
+        logger.error(f"Erreur lors de la sauvegarde des résultats : {e}")
+
+
+def display_analysis_results(results, extractor_type):
+    """Affiche les résultats de l'analyse Terraform avec les métriques extraites."""
     for file, content in results.items():
-        print(f"\n📂 Fichier analysé : {file}")
-        if "data" in content:
-            for block in content["data"]:
-                block_name = block.get("block_name", "[Nom Inconnu]")
-                block_type = block.get("block", "[Type Inconnu]")
-                defect_status = block.get("defect_prediction", "N/A")
-                print(f"    - {block_type} {block_name} -> {defect_status}")
+        msg = (
+            "📂 Fichier analysé : "
+            if extractor_type in ["delta", "codemetrics"]
+            else "🧱 Bloc analysé : "
+        )
+        print("\n" + "=" * 60)
+        print(f"{msg} {file}")
+        print("=" * 60)
+
+        if extractor_type in ["delta", "process"]:
+            formatted_metrics = json.dumps(content, indent=4, ensure_ascii=False)
+            print(formatted_metrics)
+        else:
+            if "data" in content:
+                for block in content["data"]:
+                    block_name = block.get("block_name", "[Nom Inconnu]")
+                    block_type = block.get("block", "[Type Inconnu]")
+                    print(f"    🔹 {block_type} {block_name}")
+
+        print("=" * 60)
 
 
-def cleanup_temp_repo(repo_url, repo_path):
-    """Supprime le dossier temporaire s'il y a eu un clonage."""
-    if repo_url:
-        logger.info(f"Suppression du repo temporaire `{repo_path}`...")
-        shutil.rmtree(repo_path, ignore_errors=True)
+def show_defect_history():
+    """
+    Affiche le contenu du fichier defect_history.json (s'il existe),
+    avec l'historique complet par commit.
+    """
+    history = load_defect_history()
+
+    if not history:
+        logger.warning(
+            "Aucune prédiction trouvée - defect_history.json est vide ou inexistant."
+        )
+        return
+
+    print("=" * 60)
+    print("📘 Contenu de defect_history.json :")
+    for block_id, predictions in history.items():
+        print(f"🔹 {block_id}")
+        for entry in predictions:
+            fault = entry.get("fault_prone", "?")
+            date = entry.get("date", "?")
+            commit = entry.get("commit", "?")
+            print(f"    - commit {commit} -> fault_prone = {fault} (prédit le {date})")
+    print("=" * 60)
 
 
 def main():
-    """Exécute l'analyse Terraform avec la gestion correcte du commit hash."""
+    """Point d'entrée principal pour exécuter l'analyse et sauvegarder les résultats."""
+    parser = argparse.ArgumentParser(
+        description="TFDefectGA - Analyse et prédiction de défauts Terraform"
+    )
+    parser.add_argument(
+        "--model", type=str, help="Nom du modèle de prédiction à utiliser (ex: dummy)"
+    )
+    parser.add_argument(
+        "--extractor",
+        type=str,
+        choices=["codemetrics", "delta", "process"],
+        default="codemetrics",
+        help="Type d'extracteur à utiliser",
+    )
+    parser.add_argument(
+        "--show-history",
+        action="store_true",
+        help="Afficher le contenu de defect_history.json",
+    )
+    parser.add_argument(
+        "--generate-report",
+        action="store_true",
+        help="Générer uniquement le rapport HTML à partir de defect_history.json",
+    )
 
-    # Vérifier que Git est bien initialisé
+    args = parser.parse_args()
+
+    if args.show_history:
+        show_defect_history()
+        return
+
+    if args.generate_report:
+        generate_report_from_history()
+        return
+
     GitAdapter.verify_git_repo()
 
-    # Parsing des arguments
-    args = sys.argv[1:]
-    repo_url = None
-    commit_hash = "HEAD"
-    extractor_type = "terrametrics"  # Default extractor
+    if args.model:
+        try:
+            run_prediction_flow(args.model)
+        except ValueError as e:
+            logger.error(str(e))
+            raise SystemExit(1)
+        return
 
-    # Vérifier si un commit hash est fourni
-    if args and not args[0].startswith("--"):
-        commit_hash = args[0]
+    if args.extractor in ["codemetrics", "delta"]:
+        verify_jar()
 
-    # Vérifier si un repo distant est fourni
-    if "--repo" in args:
-        repo_index = args.index("--repo")
-        if repo_index + 1 < len(args):
-            repo_url = args[repo_index + 1]
+    results = detect_and_analyze(args.extractor)
 
-    if "--extractor" in args:
-        extractor_index = args.index("--extractor")
-        if extractor_index + 1 < len(args):
-            extractor_type = args[extractor_index + 1]
+    if results:
+        if args.extractor == "delta":
+            output_file = config.DELTA_METRICS_JSON_PATH
+        elif args.extractor == "process":
+            output_file = config.PROCESS_METRICS_JSON_PATH
+        else:
+            output_file = config.CODE_METRICS_JSON_PATH
 
-    # Déterminer le chemin du dépôt (soit local, soit cloné)
-    repo_path = clone_repo_if_needed(repo_url)
-
-    # Vérification du fichier TerraMetrics JAR
-    verify_jar()
-
-    try:
-        logger.info(f"Utilisation de l'extracteur: `{extractor_type}`...")
-        analysis_results = detect_and_analyze(commit_hash, repo_path, extractor_type)
-        display_analysis_results(analysis_results)
-        save_results(analysis_results)
-        cleanup_temp_repo(repo_url, repo_path)
-    except SystemExit:
-        cleanup_temp_repo(repo_url, repo_path)
-        sys.exit(0)
-    except Exception as e:
-        cleanup_temp_repo(repo_url, repo_path)
-        logger.error(f"Erreur fatale : {e}")
-        sys.exit(1)
+        display_analysis_results(results, args.extractor)
+        save_results(results, output_file)
+    else:
+        logger.warning("Aucun résultat à sauvegarder.")
 
 
 if __name__ == "__main__":

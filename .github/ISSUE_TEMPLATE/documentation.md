@@ -1,8 +1,9 @@
 ---
-name: Documentation
-about: Suggérer une amélioration ou une correction pour la documentation
+name: "📝 Documentation"
+about: "Suggérer une amélioration ou une correction pour la documentation"
 title: "[Docs] "
 labels: [documentation]
+assignees: ""
 ---
 
 ## Description  
@@ -20,5 +21,3 @@ Ajoutez le nom du fichier qui a été modifié.
 
 ## Notes supplémentaires  
 Tout autre détail qui pourrait être utile.  
-
----
