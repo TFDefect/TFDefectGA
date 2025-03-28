@@ -2,6 +2,7 @@ from typing import Dict, List
 
 from core.parsers.metrics_extractor_factory import MetricsExtractorFactory
 from core.use_cases.detect_tf_changes import DetectTFChanges
+from infrastructure.ml.selected_features_loader import load_selected_features
 
 
 def normalize_block_identifier(block_str: str) -> str:
@@ -38,6 +39,25 @@ class FeatureVectorBuilder:
         self.process_extractor = MetricsExtractorFactory.get_extractor(
             "process", self.terrametrics_jar_path
         )
+
+    def filter_and_order_vectors(
+        self, all_metrics: Dict[str, Dict[str, float]], selected_features: List[str]
+    ) -> Dict[str, List[float]]:
+        """
+        Filtre et ordonne les vecteurs selon les features sélectionnées.
+
+        Args:
+            all_metrics (Dict[str, Dict[str, float]]): Dictionnaire complet des métriques par bloc.
+            selected_features (List[str]): Liste ordonnée des features à conserver.
+
+        Returns:
+            Dict[str, List[float]]: Dictionnaire {block_id: vecteur filtré et ordonné}.
+        """
+        vectors = {}
+        for block_id, features in all_metrics.items():
+            vector = [float(features.get(f, 0.0)) for f in selected_features]
+            vectors[block_id] = vector
+        return vectors
 
     def build_vectors(self) -> Dict[str, List[float]]:
         """
@@ -84,21 +104,20 @@ class FeatureVectorBuilder:
             full_normalized_id = f"{file_path}::{normalized_id}"
             process_by_block_id[full_normalized_id] = metrics
 
-        # Fusion des clés
+        # Fusion des sources
         all_block_ids = (
             set(code_by_block_id) | set(delta_by_block_id) | set(process_by_block_id)
         )
 
-        # Construction des vecteurs finaux
-        vectors = {}
+        all_metrics = {}
         for block_id in all_block_ids:
-            vector = []
+            combined = {}
             for source in [code_by_block_id, delta_by_block_id, process_by_block_id]:
-                metrics = source.get(block_id, {})
-                for key in sorted(metrics):
-                    value = metrics[key]
-                    if isinstance(value, (int, float)):
-                        vector.append(value)
-            vectors[block_id] = vector
+                combined.update(source.get(block_id, {}))
+            all_metrics[block_id] = combined
 
-        return vectors
+        # Charger la liste des features sélectionnées dans le bon ordre
+        selected_features = load_selected_features()
+
+        # Appliquer le filtrage et l’ordre
+        return self.filter_and_order_vectors(all_metrics, selected_features)

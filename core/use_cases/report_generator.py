@@ -3,7 +3,7 @@ from datetime import datetime
 
 from jinja2 import Environment, FileSystemLoader
 
-import app.config as config
+from app import config
 from infrastructure.ml.defect_history_manager import load_defect_history
 
 
@@ -13,7 +13,7 @@ class ReportGenerator:
         self.env = Environment(loader=FileSystemLoader(config.TEMPLATE_FOLDER))
         self.template = self.env.get_template(config.REPORT_TEMPLATE)
 
-    def generate(self, predictions: dict) -> str:
+    def generate(self, predictions: dict, model_description: str = "") -> str:
         """
         Génère un rapport HTML contenant les prédictions enrichies.
         Tronque le commit hash et formate la date pour un meilleur affichage.
@@ -66,6 +66,7 @@ class ReportGenerator:
         html_content = self.template.render(
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             predictions=enriched_predictions,
+            model_description=model_description,
         )
 
         with open(output_path, "w", encoding="utf-8") as f:

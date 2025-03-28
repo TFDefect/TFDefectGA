@@ -20,3 +20,7 @@ REPO_PATH = os.environ.get("GITHUB_WORKSPACE", ".")
 REPORT_TEMPLATE = os.environ.get("REPORT_TEMPLATE", "report_template.html")
 
 REPORTS_OUTPUT_FOLDER = os.path.join(OUTPUT_DIR, "reports")
+
+FEATURE_ORDER_TEMPLATE_PATH = os.path.join("features", "feature_order_template.csv")
+
+RF_MODEL_PATH = os.path.join("models", "random_forest_model.joblib")
