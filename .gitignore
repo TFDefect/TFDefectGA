@@ -40,12 +40,6 @@ data/*.log
 # Ignorer les artefacts de GitHub Actions
 .github/workflows/*.log
 
-# Ignorer les fichiers de modèles et poids de ML
-models/
-*.h5
-*.pkl
-*.joblib
-
 output.json
 code_metrics.json
 delta_metrics.json

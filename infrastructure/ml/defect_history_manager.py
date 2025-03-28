@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import Dict
 
-import app.config as config
+from app import config
 from infrastructure.git.git_adapter import get_latest_commit_hash
 
 
