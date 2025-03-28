@@ -1,92 +1,48 @@
 {
     "data\\main.tf::terraform": [
         {
-            "commit": "35575f85ec1a97f30457927558397669915d30a0",
+            "commit": "cf8078436d018bde7935011ddb9c2b8037137472",
             "fault_prone": 0,
-            "date": "2025-03-22T14:38:00.442660"
+            "date": "2025-03-28T13:17:13.981510"
         },
         {
-            "commit": "b95f249f493cf8809697c6137bafa5dc15b07805",
+            "commit": "e4983abd0dc45c16ad91e6990d68a8601b5cc08e",
             "fault_prone": 0,
-            "date": "2025-03-22T16:49:53.664647"
+            "date": "2025-03-28T14:41:11.800894"
         },
         {
-            "commit": "3242b454c4fe03dffc9ea688ed9d0f0c7d0f1b3e",
+            "commit": "a1eeedced3661e6b74328d107988ed504d0e564b",
             "fault_prone": 0,
-            "date": "2025-03-22T17:20:29.624625"
-        },
-        {
-            "commit": "4bfb87f65a49ffc39dee72652cf03a284ca58db8",
-            "fault_prone": 0,
-            "date": "2025-03-22T17:34:14.269298"
-        },
-        {
-            "commit": "fc2306189ac4c0edf793c0d6d8cc25e3a50c49a0",
-            "fault_prone": 0,
-            "date": "2025-03-23T14:20:24.159020"
-        },
-        {
-            "commit": "1081abdfe5c22f871b9135080a94fbe97663f0e8",
-            "fault_prone": 1,
-            "date": "2025-03-24T16:30:27.988345"
+            "date": "2025-03-28T15:09:14.356879"
         }
     ],
     "data\\main.tf::aws_instance.example": [
         {
-            "commit": "35575f85ec1a97f30457927558397669915d30a0",
-            "fault_prone": 1,
-            "date": "2025-03-22T14:38:00.442660"
-        },
-        {
-            "commit": "b95f249f493cf8809697c6137bafa5dc15b07805",
-            "fault_prone": 1,
-            "date": "2025-03-22T16:49:53.664647"
-        },
-        {
-            "commit": "3242b454c4fe03dffc9ea688ed9d0f0c7d0f1b3e",
-            "fault_prone": 1,
-            "date": "2025-03-22T17:20:29.624625"
-        },
-        {
-            "commit": "4bfb87f65a49ffc39dee72652cf03a284ca58db8",
+            "commit": "cf8078436d018bde7935011ddb9c2b8037137472",
             "fault_prone": 0,
-            "date": "2025-03-22T17:34:14.269298"
+            "date": "2025-03-28T13:17:13.981510"
         },
         {
-            "commit": "fc2306189ac4c0edf793c0d6d8cc25e3a50c49a0",
+            "commit": "e4983abd0dc45c16ad91e6990d68a8601b5cc08e",
             "fault_prone": 0,
-            "date": "2025-03-23T14:20:24.159020"
+            "date": "2025-03-28T14:41:11.800894"
         },
         {
-            "commit": "1081abdfe5c22f871b9135080a94fbe97663f0e8",
+            "commit": "a1eeedced3661e6b74328d107988ed504d0e564b",
             "fault_prone": 0,
-            "date": "2025-03-24T16:30:27.988345"
-        }
-    ],
-    "data\\main.tf::aws_s3_bucket.my_bucket": [
-        {
-            "commit": "35575f85ec1a97f30457927558397669915d30a0",
-            "fault_prone": 1,
-            "date": "2025-03-22T14:38:00.442660"
-        }
-    ],
-    "data\\main2.tf::provider.aws": [
-        {
-            "commit": "b95f249f493cf8809697c6137bafa5dc15b07805",
-            "fault_prone": 0,
-            "date": "2025-03-22T16:49:53.664647"
+            "date": "2025-03-28T15:09:14.356879"
         }
     ],
     "data\\aws.tf::provider.aws": [
         {
-            "commit": "3dc53a9973ab6389486ffa5c412277b45773a18b",
+            "commit": "e4983abd0dc45c16ad91e6990d68a8601b5cc08e",
             "fault_prone": 0,
-            "date": "2025-03-23T13:42:43.726747"
+            "date": "2025-03-28T14:41:11.800894"
         },
         {
-            "commit": "fc2306189ac4c0edf793c0d6d8cc25e3a50c49a0",
-            "fault_prone": 1,
-            "date": "2025-03-23T14:20:24.159020"
+            "commit": "a1eeedced3661e6b74328d107988ed504d0e564b",
+            "fault_prone": 0,
+            "date": "2025-03-28T15:09:14.356879"
         }
     ]
 }

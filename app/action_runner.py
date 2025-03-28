@@ -3,8 +3,7 @@ import json
 import os
 import subprocess
 
-import config
-
+from app import config
 from core.parsers.contribution_builder import (
     get_contribution,
     get_previous_contributions,
@@ -37,6 +36,9 @@ def verify_jar():
 
 
 def run_prediction_flow(model_type: str):
+    logger.info("Formatage des fichiers Terraform (terraform fmt)...")
+    run_terraform_fmt(config.REPO_PATH)
+
     logger.info("Construction des vecteurs de caractéristiques...")
     builder = FeatureVectorBuilder(config.REPO_PATH, config.TERRAMETRICS_JAR_PATH)
     vectors = builder.build_vectors()
@@ -47,15 +49,19 @@ def run_prediction_flow(model_type: str):
 
     logger.info(f"Chargement du modèle : {model_type}")
     model = ModelFactory.get_model(model_type)
+    logger.info(model.describe())
 
     logger.info("Prédictions des défauts...")
-    predictions = model.predict(vectors)
+    predictions_with_confidence = model.predict_with_confidence(vectors)
+
+    # Extraire juste les labels pour la sauvegarde dans defect history
+    predictions = {k: v[0] for k, v in predictions_with_confidence.items()}
 
     logger.info(f"Sauvegarde des prédictions dans `{config.DEFECT_HISTORY_PATH}`")
     update_defect_history(predictions)
 
     # Génération du rapport HTML
-    report_path = ReportGenerator().generate(predictions)
+    report_path = ReportGenerator().generate(predictions, model.describe())
     logger.info(f"Rapport disponible ici : {report_path}")
 
     # Affichage avec historique
@@ -66,7 +72,7 @@ def run_prediction_flow(model_type: str):
     total = 0
     defectives = 0
 
-    for block_id, label in predictions.items():
+    for block_id, (label, confidence) in predictions_with_confidence.items():
         try:
             file_path, block_identifiers = block_id.split("::", 1)
             contrib = get_contribution(config.REPO_PATH, file_path, block_identifiers)
@@ -82,6 +88,7 @@ def run_prediction_flow(model_type: str):
 
                 print(f"\n{status_icon} Block: {block_id}")
                 print(f"    -> État: {status_label}")
+                print(f"    -> Score de confiance: {confidence:.2f}")
                 print(f"    -> Défauts précédents: {count}")
 
                 total += 1
@@ -96,6 +103,32 @@ def run_prediction_flow(model_type: str):
         f"🧾 Résumé : {total} blocs analysés - {defectives} defectives, {total - defectives} clean"
     )
     print("=" * 60)
+
+
+def run_terraform_fmt(repo_path: str) -> None:
+    """
+    Applique `terraform fmt -recursive` pour garantir un formatage correct.
+    """
+    try:
+        result = subprocess.run(
+            ["terraform", "fmt", "-recursive", repo_path],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.stdout.strip():
+            logger.info("🔧 terraform fmt appliqué :")
+            print(result.stdout.strip())
+        else:
+            logger.info(
+                "Aucun fichier à reformater : tous les fichiers .tf sont propres."
+            )
+    except FileNotFoundError:
+        logger.warning(
+            "Terraform n'est pas installé. Impossible d'appliquer terraform fmt."
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de terraform fmt : {e}")
 
 
 def generate_report_from_history():

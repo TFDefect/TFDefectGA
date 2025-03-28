@@ -16,9 +16,12 @@ TFDefectGA est un outil avancé d'analyse des fichiers **Terraform (`.tf`)** com
 - [⚙️ Prérequis](#️-prérequis)
 - [📦 Installation](#-installation)
 - [🚀 Exécution Locale](#-exécution-locale)
+- [🐳 Docker et GHCR](#-docker-et-ghcr)
 - [⚙️ Modes d'Analyse Disponibles](#️-modes-danalyse-disponibles)
 - [🤖 Modèle Prédictif](#-modèle-prédictif)
 - [📈 Historique des défauts](#-historique-des-défauts-defect_historyjson)
+- [🧪 Tests](#-tests)
+- [🔧 Formatage Terraform](#-formatage-terraform)
 - [🛠 Configuration](#-configuration)
 - [📝 Licence](#-licence)
 
@@ -30,17 +33,19 @@ TFDefectGA est un outil avancé d'analyse des fichiers **Terraform (`.tf`)** com
 ✔️ **Analyse historique Git** pour évaluer l'évolution des blocs Terraform  
 ✔️ **Comparaison avant/après commit** pour détecter les changements critiques  
 ✔️ **Prédiction de défauts** via Machine Learning  
-✔️ **Intégration GitHub Actions** pour une exécution automatisée
+✔️ **Rapports HTML interactifs**  
+✔️ **Intégration GitHub Actions et Docker-ready**  
+✔️ **Formatage automatique** des fichiers `.tf` via `terraform fmt`
 
 ---
 
 ## ⚙️ Prérequis
 
 - **Python 3.8+**
-- **Java 11+** (nécessaire pour TerraMetrics)
-- **Git** (utilisé pour l'analyse historique)
-- **Terraform CLI** (optionnel, pour normaliser les fichiers `.tf`)
-- **TerraMetrics JAR** (`terraform_metrics-1.0.jar` dans `libs/`)
+- **Java 11+** (pour TerraMetrics)
+- **Git** (analyse historique)
+- **Terraform CLI** (pour `terraform fmt`)
+- **TerraMetrics JAR** (`libs/terraform_metrics-1.0.jar`)
 
 ---
 
@@ -53,7 +58,7 @@ cd TFDefectGA
 
 # Créer un environnement virtuel
 python -m venv venv
-source venv/bin/activate  # (ou .\venv\Scripts\activate sous Windows)
+source venv/bin/activate  # ou .\venv\Scripts\activate sur Windows
 
 # Installer les dépendances
 pip install -r requirements.txt
@@ -71,55 +76,97 @@ python app/action_runner.py --extractor codemetrics
 # Analyse de l'évolution entre commits
 python app/action_runner.py --extractor delta
 
-# Analyse des métriques de processus et historiques Git
+# Analyse des métriques de processus (contributions, auteurs...)
 python app/action_runner.py --extractor process
 
-# Exécution d'une prédiction (modèle dummy par défaut)
-python app/action_runner.py --model dummy
+# Prédiction via modèle (dummy, randomforest, etc.)
+python app/action_runner.py --model randomforest
 
-# Affichage de l'historique des défauts prédits
+# Afficher l'historique des prédictions
 python app/action_runner.py --show-history
 ```
 
-📂 Les résultats sont générés dans le dossier `out/`.
+📂 Les résultats sont sauvegardés dans le dossier `out/`.
+
+---
+
+## 🐳 Docker et GHCR
+
+TFDefectGA peut être exécuté via une **image Docker publique** :
+
+```bash
+docker pull ghcr.io/abdelhaouari/tfdefectga:v1
+```
+
+### 🔧 Exécution sur un dépôt local
+
+L’image contient uniquement le code et les dépendances de TFDefectGA, mais **pas les fichiers du dépôt Git** ni les fichiers Terraform à analyser.  
+Pour que l’analyse fonctionne correctement (accès aux fichiers `.tf`, historique Git, etc.), il est nécessaire de monter :
+
+- le répertoire de travail dans `/app`
+- le dossier `.git/` dans `/app/.git`
+
+#### ✅ Exemple de commande (compatible Linux, macOS, Git Bash sur Windows) :
+
+```bash
+MSYS_NO_PATHCONV=1 docker run --rm \
+  -v "$(pwd):/app" \
+  -v "$(pwd)/.git:/app/.git" \
+  ghcr.io/abdelhaouari/tfdefectga:v1 \
+  --model randomforest
+```
+
+> ℹ️ Le flag `MSYS_NO_PATHCONV=1` est requis sous Git Bash (Windows) pour éviter les conversions automatiques de chemins.
+
+Cette commande :
+
+- applique `terraform fmt` pour formater les fichiers `.tf`
+- exécute l’analyse des métriques
+- effectue les prédictions via le modèle ML
+- génère le rapport HTML dans `out/`
+
+---
+
+### 🛠️ Construction locale de l’image Docker
+
+Pour construire l’image manuellement et la publier dans le GitHub Container Registry (GHCR) :
+
+```bash
+docker build -t tfdefectga .
+docker tag tfdefectga ghcr.io/<utilisateur>/tfdefectga:v2
+docker push ghcr.io/<utilisateur>/tfdefectga:v2
+```
 
 ---
 
 ## ⚙️ Modes d'analyse disponibles
 
 | Extracteur    | Description                                             | Fichier JSON Généré        |
-| ------------- | ------------------------------------------------------- | -------------------------- |
-| `codemetrics` | Analyse statique Terraform (complexité, duplication...) | `out/code_metrics.json`    |
-| `delta`       | Évolution des métriques avant/après commit              | `out/delta_metrics.json`   |
-| `process`     | Analyse historique (contributions, commits, auteurs...) | `out/process_metrics.json` |
+|---------------|---------------------------------------------------------|----------------------------|
+| `codemetrics` | Analyse statique (TerraMetrics)                         | `out/code_metrics.json`    |
+| `delta`       | Diff entre deux versions Git                            | `out/delta_metrics.json`   |
+| `process`     | Historique Git (contributions, commits, auteurs...)     | `out/process_metrics.json` |
 
 ---
 
 ## 🤖 Modèle prédictif
 
-💡 **Objectif : Détecter les blocs Terraform à risque avant leur déploiement.**
+💡 **Objectif : Identifier les blocs à risque avant leur déploiement.**
 
-### **📊 Fonctionnement :**
+### 🔁 Étapes du pipeline :
 
-1. **Extraction des métriques** (code, delta, process)
-2. **Construction d’un vecteur de caractéristiques par bloc**
-3. **Prédiction via un modèle ML** (ex: `DummyModel`, scikit-learn, etc.)
-4. **Mise à jour d’un fichier `defect_history.json`** enregistrant les prédictions **par bloc et par commit**
+1. 📦 Extraction des métriques de code, delta et processus
+2. 🧠 Construction du vecteur de caractéristiques
+3. 🎯 Prédiction avec un modèle ML (`DummyModel`, `RandomForestClassifier`)
+4. 🕓 Historisation dans `defect_history.json`
 
-📌 Chaque prédiction est historisée avec :
-
-- le `block_id`
-- le hash du commit
-- la date de prédiction
-- la valeur `fault_prone` (0 ou 1)
-
-🔀 Ces données sont ensuite utilisées pour calculer dynamiquement la métrique `num_defects_before`, qui reflète combien de fois un bloc a été marqué fautif dans le passé.
+Chaque prédiction est accompagnée d’un **score de confiance**, calculé via `predict_proba`.
 
 ---
 
 ## 📈 Historique des défauts (`defect_history.json`)
 
-Le fichier `out/defect_history.json` contient l’historique des prédictions, par bloc et par commit. Exemple :
+Ce fichier trace les prédictions faites sur chaque bloc Terraform :
 
 ```json
 {
@@ -128,41 +175,62 @@ Le fichier `out/defect_history.json` contient l’historique des prédictions, p
       "commit": "a1b2c3",
       "fault_prone": 1,
       "date": "2025-03-22T13:30:14"
-    },
-    {
-      "commit": "d4e5f6",
-      "fault_prone": 0,
-      "date": "2025-03-23T08:15:02"
     }
   ]
 }
 ```
 
-Chaque entrée correspond à une prédiction réalisée à un moment donné.
-Cela permet de reconstituer l’évolution du risque d’un bloc dans le temps.
+Utilisé pour :
 
-🔢 Commande pour afficher l’historique dans le terminal :
+- Générer les rapports HTML
+- Calculer `num_defects_before` pour enrichir les prédictions futures
+
+---
+
+## 🧪 Tests
+
+Exécuter tous les tests :
 
 ```bash
-python app/action_runner.py --show-history
+pytest tests/
 ```
+
+#### Tests unitaires
+
+```bash
+pytest tests/unit/
+```
+
+#### Tests d'intégration
+
+```bash
+pytest tests/integration/
+```
+
+---
+
+## 🔧 Formatage Terraform
+
+Avant d’analyser les blocs `.tf`, TFDefectGA exécute automatiquement :
+
+```bash
+terraform fmt -recursive
+```
+
+✅ Cela permet d’éviter les erreurs de parsing liées à un format incorrect.  
+📝 Le formatage est **réalisé dans le repo cloné localement** (dans Docker ou GitHub Actions), **sans impacter le dépôt distant**.
 
 ---
 
 ## 🛠 Configuration
 
-La configuration se fait via `config.py` :
+Le fichier `config.py` permet de personnaliser les chemins et ressources utilisées :
 
 ```python
-import os
-
 TERRAMETRICS_JAR_PATH = os.path.join("libs", "terraform_metrics-1.0.jar")
-
-CODE_METRICS_JSON_PATH = os.path.join("out", "code_metrics.json")
-DELTA_METRICS_JSON_PATH = os.path.join("out", "delta_metrics.json")
-PROCESS_METRICS_JSON_PATH = os.path.join("out", "process_metrics.json")
-
 REPO_PATH = os.environ.get("GITHUB_WORKSPACE", ".")
+CODE_METRICS_JSON_PATH = os.path.join("out", "code_metrics.json")
+RF_MODEL_PATH = os.path.join("models", "random_forest_model.joblib")
 ```
 
 ---

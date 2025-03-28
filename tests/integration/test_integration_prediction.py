@@ -12,8 +12,7 @@ from infrastructure.ml.model_factory import ModelFactory
     return_value="integrationtest123",
 )
 def test_dummy_model_prediction_and_history_update(mock_get_commit, tmp_path):
-    # Rediriger le chemin d'historique vers un fichier temporaire
-    import app.config as config
+    from app import config
 
     config.DEFECT_HISTORY_PATH = tmp_path / "defect_history.json"
     config.OUTPUT_DIR = tmp_path

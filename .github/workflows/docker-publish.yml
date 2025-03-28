@@ -23,16 +23,20 @@ jobs:
       - name: Cloner le dépôt
         uses: actions/checkout@v3
 
+      - name: 🔧 Convertir le nom d'organisation en minuscule
+        id: vars
+        run: echo "owner_lowercase=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
+
       - name: 🔑 Connexion à GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: 🛠️ Build l'image
+      - name: 🛠️ Build l'image Docker
         run: |
           docker build -t tfdefectga:latest .
-          docker tag tfdefectga:latest ghcr.io/${{ github.repository_owner }}/tfdefectga:latest
-          docker tag tfdefectga:latest ghcr.io/${{ github.repository_owner }}/tfdefectga:v1
+          docker tag tfdefectga:latest ghcr.io/${{ steps.vars.outputs.owner_lowercase }}/tfdefectga:latest
+          docker tag tfdefectga:latest ghcr.io/${{ steps.vars.outputs.owner_lowercase }}/tfdefectga:v1
 
-      - name: 🚀 Push vers GHCR
+      - name: 🚀 Push de l'image vers GHCR
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/tfdefectga:latest
-          docker push ghcr.io/${{ github.repository_owner }}/tfdefectga:v1
+          docker push ghcr.io/${{ steps.vars.outputs.owner_lowercase }}/tfdefectga:latest
+          docker push ghcr.io/${{ steps.vars.outputs.owner_lowercase }}/tfdefectga:v1
