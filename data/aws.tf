@@ -3,5 +3,5 @@ provider "aws" {
   region      = var.region
   project     = var.gcp_project_id
   source      = "hashicorp/aws"
-  echo        = "Hello, World"
+  echo        = "Hello World"
 }

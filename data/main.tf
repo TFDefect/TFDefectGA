@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 2.0"
+      version = "~> 3.0"
     }
   }
 }
@@ -44,11 +44,11 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-123456"
+  ami           = "ami-1234567"
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
-    command = "echo Hello World"
+    command = "echo Hello, World"
   }
 
   lifecycle {

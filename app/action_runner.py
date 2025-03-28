@@ -36,6 +36,9 @@ def verify_jar():
 
 
 def run_prediction_flow(model_type: str):
+    logger.info("Formatage des fichiers Terraform (terraform fmt)...")
+    run_terraform_fmt(config.REPO_PATH)
+
     logger.info("Construction des vecteurs de caractéristiques...")
     builder = FeatureVectorBuilder(config.REPO_PATH, config.TERRAMETRICS_JAR_PATH)
     vectors = builder.build_vectors()
@@ -100,6 +103,32 @@ def run_prediction_flow(model_type: str):
         f"🧾 Résumé : {total} blocs analysés - {defectives} defectives, {total - defectives} clean"
     )
     print("=" * 60)
+
+
+def run_terraform_fmt(repo_path: str) -> None:
+    """
+    Applique `terraform fmt -recursive` pour garantir un formatage correct.
+    """
+    try:
+        result = subprocess.run(
+            ["terraform", "fmt", "-recursive", repo_path],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.stdout.strip():
+            logger.info("🔧 terraform fmt appliqué :")
+            print(result.stdout.strip())
+        else:
+            logger.info(
+                "Aucun fichier à reformater : tous les fichiers .tf sont propres."
+            )
+    except FileNotFoundError:
+        logger.warning(
+            "Terraform n'est pas installé. Impossible d'appliquer terraform fmt."
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de terraform fmt : {e}")
 
 
 def generate_report_from_history():
