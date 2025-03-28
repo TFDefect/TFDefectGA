@@ -65,9 +65,18 @@ class RandomForestModel(BaseModel):
     def describe(self) -> str:
         """
         Retourne une description du modèle et du scaler utilisés.
+        Le nombre de features est déterminé dynamiquement.
         """
         model_type = type(self.model).__name__
         scaler_type = type(self.scaler).__name__
+
+        if hasattr(self.model, "n_features_in_"):
+            num_features = self.model.n_features_in_
+        elif hasattr(self.scaler, "scale_"):
+            num_features = len(self.scaler.scale_)
+        else:
+            num_features = "?"
+
         return (
-            f"🧠 Modèle : {model_type} | 🔧 Scaler : {scaler_type} | 🔁 Features : 55"
+            f"🧠 Modèle : {model_type} | 🔧 Scaler : {scaler_type} | 🔁 Features : {num_features}"
         )
