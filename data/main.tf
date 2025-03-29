@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.0"
+      version = "~> 6.0"
     }
   }
 }
@@ -36,7 +36,7 @@ module "kubernetes" {
 
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "my-bucket"
-  acl    = "private"
+  acl    = "public"
 
   # Commentaire contient une accolade {
   # Commentaire contient une accolade }
@@ -44,11 +44,11 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-123456789"
+  ami           = "ami-123456"
   instance_type = "t2.micro"
 
   provisioner "local-exec" {
-    command = "echo Hello, World"
+    command = "echo Hello World"
   }
 
   lifecycle {
