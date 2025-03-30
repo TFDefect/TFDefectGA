@@ -98,9 +98,13 @@ abstract class BaseModel {
     + predict(input_data: List[float]) : Any
 }
 
-class SklearnModel {
+class RandomForestModel {
     + __init__(model_path: str)
     + predict(input_data: List[float]) : Any
+    + predict_with_confidence(
+        self, vectors: Dict[str, List[float]]
+    ) : Dict[str, Tuple[int, float]]
+    + describe(self) : str
 }
 
 class DummyModel {
@@ -121,12 +125,18 @@ class ModelFactory {
     + get_model(extractor_type: str): BaseModel
 }
 
+class DefectHistoryManager {
+    + load_defect_history(): Dict[str, list]
+    + save_defect_history(history: Dict[str, list])
+    + update_defect_history(predictions: Dict[str, int]) 
+}
+
 AnalyzeTFCode <-u- ActionRunner : calls
 ActionRunner -u-> FeatureVectorBuilder
 DetectTFChanges <-u-   ActionRunner: calls
 GitChanges <-u-  DetectTFChanges: uses
-GitChanges -down-> GitAdapter : depends on
-GitAdapter -down-> TerraformParser : parses tf files
+GitChanges --> GitAdapter : depends on
+GitAdapter --> TerraformParser : parses tf files
 
 AnalyzeTFCode -down-> BaseMetricsExtractor : uses
 CodeMetricsExtractor -u--|> BaseMetricsExtractor
@@ -138,8 +148,13 @@ MetricsExtractorFactory ..> BaseMetricsExtractor
 ProcessMetricsExtractor -- ContributionBuilder: uses
 
 AnalyzeTFCode -down-> BaseModel : uses
-SklearnModel -u-|> BaseModel
+RandomForestModel -u-|> BaseModel
 DummyModel -u-|> BaseModel
 AnalyzeTFCode -down-> ReportGenerator : generates reports
 ModelFactory ..> BaseModel
+
+ActionRunner --> DefectHistoryManager : uses
+DefectHistoryManager --> GitAdapter : gets commit info
+ 
+ProcessMetricsExtractor --> DefectHistoryManager : reads defect history
 @enduml

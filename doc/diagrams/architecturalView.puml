@@ -17,7 +17,7 @@ node "TFDefect GitHub Action" {
 
     rectangle "Couche domaine" #FFFF99 {
         frame "Models" {
-            package "skLearnModel" {}
+            package "RandomForestModel" {}
             package "DummyModel" {}
         }  
         package "ModelFactory" {}  
@@ -27,10 +27,11 @@ node "TFDefect GitHub Action" {
         package "GitChanges" {}
         package "GitAdapter" {}
         package "TerraformParser" {}
+        package "DefectHistoryManager" {}
         frame "MetricsExtractors" {
-            package "CodeMetricsAdapter" {}
-            package "ProcessMetricsAdapter" {}
-            package "DeltaMetricsAdapter" {}
+            package "CodeMetricsExtractor" {}
+            package "ProcessMetricsExtractor" {}
+            package "DeltaMetricsExtractor" {}
         }
         package "ProcessMetrics" {}
         package "ContributionBuilder" {}
@@ -58,12 +59,20 @@ GitAdapter ..> TerraformParser : "parse des fichiers"
 
 AnalyzeTFCode .down.> Cache: Stocke les \n données calculées
 AnalyzeTFCode ..> MetricsExtractors: utilise
-CodeMetricsAdapter ....> TerraMetrics: utilise
+CodeMetricsExtractor ...> TerraMetrics: utilise
+DeltaMetricsExtractor ....> TerraMetrics: utilise
 
 ModelFactory .down..> Models: Crée une instance de 
 
-MetricsExtractorFactory ...> MetricsExtractors: Crée une instance de
-ProcessMetricsAdapter ...> ProcessMetrics: utilise
-ProcessMetricsAdapter ...> ContributionBuilder: utilise
+MetricsExtractorFactory .u..> MetricsExtractors: Crée une instance de
+ProcessMetricsExtractor ...> ProcessMetrics: utilise
+ProcessMetricsExtractor ...> ContributionBuilder: utilise
 
+FeatureVectorBuilder ..> MetricsExtractors : "utilise"
+FeatureVectorBuilder ...> Models : "prépare les vecteurs pour"
+ActionRunner ...> FeatureVectorBuilder : "utilise"
+
+ActionRunner ..> DefectHistoryManager : "enregistre les résultats"
+Models ..> DefectHistoryManager : "sauvegarde les prédictions"
+Cache ..> DefectHistoryManager : "persiste les données"
 @enduml
