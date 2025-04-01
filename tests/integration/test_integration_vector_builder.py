@@ -2,13 +2,31 @@ from core.use_cases.feature_vector_builder import FeatureVectorBuilder
 
 
 def test_vector_builder_with_real_tf_file():
+    """
+    Teste la méthode `build_vectors` de la classe `FeatureVectorBuilder` pour vérifier
+    qu'elle génère correctement les vecteurs de caractéristiques à partir d'un fichier
+    Terraform réel.
+
+    Scénario :
+        - Une instance de `FeatureVectorBuilder` est créée avec un chemin de dépôt et un
+          chemin vers le fichier JAR de Terraform Metrics.
+        - La méthode `build_vectors` est appelée pour générer les vecteurs.
+
+    Assertions :
+        - Vérifie qu'au moins un vecteur est généré.
+        - Vérifie que chaque vecteur est une liste.
+        - Vérifie que tous les éléments des vecteurs sont des nombres flottants.
+        - Vérifie que chaque vecteur contient exactement 55 caractéristiques.
+
+    Returns:
+        None
+    """
     builder = FeatureVectorBuilder(
         repo_path=".", terrametrics_jar_path="libs/terraform_metrics-1.0.jar"
     )
 
     result = builder.build_vectors()
 
-    # Vérifie qu’au moins un vecteur a été généré
     assert len(result) > 0, "Aucun vecteur généré"
 
     for _, vector in result.items():
