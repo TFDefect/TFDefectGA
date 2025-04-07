@@ -66,7 +66,7 @@ def test_build_vectors_merges_all_metrics(mock_detect, mock_factory):
     mock_detect.return_value = mock_detect_instance
 
     # Instancier le FeatureVectorBuilder et appeler la méthode `build_vectors`
-    builder = FeatureVectorBuilder(repo_path=".", terrametrics_jar_path="fake.jar")
+    builder = FeatureVectorBuilder(repo_path=".", terrametrics_jar_path="fake.jar", model_name="dummy")
     vectors = builder.build_vectors()
 
     # Vérification du résultat

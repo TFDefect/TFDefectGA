@@ -39,7 +39,7 @@ def test_dummy_model_prediction_and_history_update(mock_get_commit, tmp_path):
 
     # Étape 1 : Génération de vecteurs à partir du code
     builder = FeatureVectorBuilder(
-        repo_path=".", terrametrics_jar_path="libs/terraform_metrics-1.0.jar"
+        repo_path=".", terrametrics_jar_path="libs/terraform_metrics-1.0.jar", model_name="dummy"
     )
     vectors = builder.build_vectors()
 

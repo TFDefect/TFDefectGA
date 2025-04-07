@@ -25,9 +25,10 @@ class FeatureVectorBuilder:
     en combinant les métriques codemetrics, delta et process.
     """
 
-    def __init__(self, repo_path: str, terrametrics_jar_path: str):
+    def __init__(self, repo_path: str, terrametrics_jar_path: str, model_name: str):
         self.repo_path = repo_path
         self.terrametrics_jar_path = terrametrics_jar_path
+        self.model_name = model_name
 
         # Initialisation des extracteurs
         self.code_extractor = MetricsExtractorFactory.get_extractor(
@@ -117,7 +118,9 @@ class FeatureVectorBuilder:
             all_metrics[block_id] = combined
 
         # Charger la liste des features sélectionnées dans le bon ordre
-        selected_features = load_selected_features()
+        selected_features = load_selected_features(self.model_name)
+        if not selected_features:
+            raise ValueError("Aucune feature sélectionnée trouvée.")
 
         # Appliquer le filtrage et l’ordre
         return self.filter_and_order_vectors(all_metrics, selected_features)

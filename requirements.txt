@@ -38,3 +38,4 @@ tomlkit==0.13.2
 types-pytz==2025.1.0.20250318
 typing_extensions==4.12.2
 tzdata==2025.2
+lightgbm==4.6.0
