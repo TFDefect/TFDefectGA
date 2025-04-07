@@ -1,20 +1,20 @@
 from typing import List
-
 import pandas as pd
+import os
 
-from app import config
 
-
-def load_selected_features(path: str = config.FEATURE_ORDER_TEMPLATE_PATH) -> List[str]:
+def load_selected_features(model_name: str) -> List[str]:
     """
-    Charge la liste des features sélectionnées et ordonnées pour le modèle.
+    Charge les features du modèle spécifié depuis un fichier CSV.
 
     Args:
-        path (str): Chemin vers le fichier CSV contenant les noms de features à conserver, dans l'ordre.
+        model_name (str): Nom du modèle (ex: 'randomforest').
 
     Returns:
-        List[str]: Liste ordonnée des noms de features.
+        List[str]: Liste ordonnée des features à utiliser.
     """
+    path = os.path.join("features", f"{model_name}_features.csv")
+
     try:
         df = pd.read_csv(path)
         if "Feature" not in df.columns:

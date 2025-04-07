@@ -40,7 +40,9 @@ def run_prediction_flow(model_type: str):
     run_terraform_fmt(config.REPO_PATH)
 
     logger.info("Construction des vecteurs de caractéristiques...")
-    builder = FeatureVectorBuilder(config.REPO_PATH, config.TERRAMETRICS_JAR_PATH)
+    builder = FeatureVectorBuilder(
+        config.REPO_PATH, config.TERRAMETRICS_JAR_PATH, model_name=model_type
+    )
     vectors = builder.build_vectors()
 
     if not vectors:

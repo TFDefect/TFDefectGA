@@ -77,6 +77,4 @@ class RandomForestModel(BaseModel):
         else:
             num_features = "?"
 
-        return (
-            f"🧠 Modèle : {model_type} | 🔧 Scaler : {scaler_type} | 🔁 Features : {num_features}"
-        )
+        return f"🧠 Modèle : {model_type} | 🔧 Scaler : {scaler_type} | 🔁 Features : {num_features}"
