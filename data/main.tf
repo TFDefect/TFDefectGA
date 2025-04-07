@@ -36,7 +36,7 @@ module "kubernetes" {
   extra_ingress_firewalls     = var.extra_ingress_firewalls
   master_additional_disk_size = var.master_additional_disk_size
   worker_additional_disk_size = var.worker_additional_disk_size
-  master_additional_disk_iops  = var.master_additional_disk_iops
+  master_additional_disk_iops = var.master_additional_disk_iops
 }
 
 resource "aws_s3_bucket" "my_bucket" {

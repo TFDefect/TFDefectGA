@@ -19,6 +19,21 @@
             "commit": "82e907757d519f0015f94c912e827d053ee44d0b",
             "fault_prone": 0,
             "date": "2025-04-06T20:13:50.231473"
+        },
+        {
+            "commit": "b6b1dcc61ec4ee8bcbe4bf1dc42dd5eab80f57b4",
+            "fault_prone": 0,
+            "date": "2025-04-06T22:59:53.718490"
+        },
+        {
+            "commit": "7d2ca780bd7b7acdae74585d031a87eb4538642e",
+            "fault_prone": 1,
+            "date": "2025-04-06T23:05:27.716762"
+        },
+        {
+            "commit": "7e98da33591587a807f8131480621089a1c88a48",
+            "fault_prone": 1,
+            "date": "2025-04-06T23:06:31.720046"
         }
     ],
     "data\\main.tf::aws_instance.example": [
@@ -41,6 +56,16 @@
             "commit": "82e907757d519f0015f94c912e827d053ee44d0b",
             "fault_prone": 0,
             "date": "2025-04-06T20:13:50.231473"
+        },
+        {
+            "commit": "7d2ca780bd7b7acdae74585d031a87eb4538642e",
+            "fault_prone": 1,
+            "date": "2025-04-06T23:05:27.716762"
+        },
+        {
+            "commit": "7e98da33591587a807f8131480621089a1c88a48",
+            "fault_prone": 1,
+            "date": "2025-04-06T23:06:31.720046"
         }
     ],
     "data\\aws.tf::provider.aws": [
@@ -53,6 +78,20 @@
             "commit": "a1eeedced3661e6b74328d107988ed504d0e564b",
             "fault_prone": 0,
             "date": "2025-03-28T15:09:14.356879"
+        }
+    ],
+    "data\\main.tf::module.kubernetes": [
+        {
+            "commit": "7e98da33591587a807f8131480621089a1c88a48",
+            "fault_prone": 0,
+            "date": "2025-04-06T23:06:31.720046"
+        }
+    ],
+    "data\\main.tf::provider.aws": [
+        {
+            "commit": "7e98da33591587a807f8131480621089a1c88a48",
+            "fault_prone": 1,
+            "date": "2025-04-06T23:06:31.720046"
         }
     ]
 }
