@@ -20,6 +20,12 @@ def test_find_block_simple_resource():
         None
     """
 
+    content = """
+    resource "aws_s3_bucket" "example" {
+    bucket = "mybucket"
+    acl    = "private"
+    }
+    """
     parser = TerraformParser.from_string(content)
     block = parser.find_block(1)
     assert 'resource "aws_s3_bucket" "example"' in block
@@ -45,7 +51,21 @@ def test_find_block_with_multiline_comments():
     Returns:
         None
     """
- 
+
+    content = """
+    /* Top-level comment */
+    resource "aws_instance" "example" {
+    ami           = "ami-123456"
+    instance_type = "t2.micro"
+    /*
+        inside comment
+    */
+    tags = {
+        Name = "Test"
+    }
+    }
+    """
+
     parser = TerraformParser.from_string(content)
     block = parser.find_block(4)
     assert "aws_instance" in block
@@ -69,6 +89,20 @@ def test_find_blocks_multiple_blocks():
 
     Returns:
         None
+    """
+
+    content = """
+    resource "aws_s3_bucket" "a" {
+    bucket = "bucket-a"
+    }
+
+    resource "aws_s3_bucket" "b" {
+    bucket = "bucket-b"
+    }
+
+    output "bucket_name" {
+    value = "a"
+    }
     """
 
     parser = TerraformParser.from_string(content)
@@ -95,6 +129,12 @@ def test_find_block_out_of_bounds():
 
     Returns:
         None
+    """
+
+    content = """
+    resource "aws_s3_bucket" "x" {
+    bucket = "x"
+    }
     """
 
     parser = TerraformParser.from_string(content)

@@ -13,7 +13,7 @@ def load_selected_features(model_name: str) -> List[str]:
     Returns:
         List[str]: Liste ordonnée des features à utiliser.
     """
-    path = os.path.join("features", f"{model_name}_features.csv")
+    path = os.path.join("feature_schemas", f"{model_name}_features.csv")
 
     try:
         df = pd.read_csv(path)
