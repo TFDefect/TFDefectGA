@@ -22,7 +22,9 @@ def test_vector_builder_with_real_tf_file():
         None
     """
     builder = FeatureVectorBuilder(
-        repo_path=".", terrametrics_jar_path="libs/terraform_metrics-1.0.jar", model_name="dummy"
+        repo_path=".",
+        terrametrics_jar_path="libs/terraform_metrics-1.0.jar",
+        model_name="dummy",
     )
 
     result = builder.build_vectors()

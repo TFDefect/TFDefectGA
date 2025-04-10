@@ -49,10 +49,10 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-1234567"
-  instance_type = "t2.micro"
-  key_name      = "my-key"
-  subnet_id     = "subnet-1234567"
+  ami                    = "ami-1234567"
+  instance_type          = "t2.micro"
+  key_name               = "my-key"
+  subnet_id              = "subnet-1234567"
   vpc_security_group_ids = ["sg-1234567"]
 
   provisioner "local-exec" {

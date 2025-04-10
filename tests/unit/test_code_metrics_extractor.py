@@ -36,7 +36,9 @@ def test_extract_metrics_success(
     Returns:
         None
     """
-    mock_open_file.return_value.__enter__.return_value.read.return_value = '{"data": "ok"}'
+    mock_open_file.return_value.__enter__.return_value.read.return_value = (
+        '{"data": "ok"}'
+    )
     mock_open_file.return_value.__enter__.return_value = MagicMock(
         read=MagicMock(return_value='{"data": "ok"}')
     )

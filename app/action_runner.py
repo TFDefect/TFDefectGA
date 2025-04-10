@@ -265,7 +265,9 @@ def main():
         description="TFDefectGA - Analyse et prédiction de défauts Terraform"
     )
     parser.add_argument(
-        "--model", type=str, help="Nom du modèle de prédiction à utiliser (ex: dummy, randomforest)"
+        "--model",
+        type=str,
+        help="Nom du modèle de prédiction à utiliser (ex: dummy, randomforest)",
     )
     parser.add_argument(
         "--extractor",

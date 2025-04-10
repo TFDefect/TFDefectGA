@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock, patch
 
-from core.parsers.contribution_builder import (get_contribution,
-                                               get_previous_contributions)
+from core.parsers.contribution_builder import (
+    get_contribution,
+    get_previous_contributions,
+)
 
 
 @patch("core.parsers.contribution_builder.Repository")
