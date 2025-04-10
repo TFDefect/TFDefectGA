@@ -1,40 +1,19 @@
 name: 'TFDefectGA'
-description: 'Analyse le code Terraform et prédit les défauts avec des métriques et un modèle de Machine Learning.'
-author: 'PFE1ZH25'
+description: 'Analyse le code Terraform et prédit les défauts avec des métriques et un modèle ML.'
+author: 'PFE17H25'
 
 inputs:
   model:
-    description: 'Nom du modèle à utiliser (dummy, randomforest, etc.)'
+    description: 'Nom du modèle à utiliser (dummy, etc.)'
     required: false
     default: 'dummy'
 
-  extractor:
-    description: 'Extracteur de métriques (codemetrics, delta, process)'
-    required: false
-    default: 'codemetrics'
-
-  generate-report:
-    description: 'Génère uniquement un rapport à partir du defect_history.json'
-    required: false
-    default: 'false'
-
-  show-history:
-    description: 'Affiche le contenu du defect_history.json'
-    required: false
-    default: 'false'
-
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/abdelhaouari/tfdefectga:v1'
-  env:
-    TERRAMETRICS_JAR: /app/libs/terraform_metrics-1.0.jar
+  image: 'ghcr.io/abdelhaouari/tfdefectga:v1'
   args:
-  - ${{ inputs.model && '--model' }}
+  - '--model'
   - ${{ inputs.model }}
-  - ${{ inputs.extractor && '--extractor' }}
-  - ${{ inputs.extractor }}
-  - ${{ inputs.generate-report == 'true' && '--generate-report' }}
-  - ${{ inputs.show-history == 'true' && '--show-history' }}
 
 branding:
   icon: 'activity'
