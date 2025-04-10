@@ -25,7 +25,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/abdelhaouari/tfdefectga:v1.0.3'
+  image: 'docker://ghcr.io/abdelhaouari/tfdefectga:v1'
   env:
     TERRAMETRICS_JAR: /app/libs/terraform_metrics-1.0.jar
   args:
