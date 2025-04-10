@@ -40,6 +40,7 @@ data/*.log
 # Ignorer les artefacts de GitHub Actions
 .github/workflows/*.log
 
+out/*.json
 output.json
 code_metrics.json
 delta_metrics.json
