@@ -15,7 +15,7 @@ TERRAMETRICS_JAR_PATH = os.environ.get(
 # Dossiers et fichiers de sortie
 OUTPUT_DIR = os.path.join(BASE_DIR, "out")
 TEMPLATE_FOLDER = os.path.join(BASE_DIR, "templates")
-REPORTS_OUTPUT_FOLDER = os.path.join(OUTPUT_DIR, "reports")
+REPORTS_OUTPUT_FOLDER = os.path.join(os.path.join("out"), "reports")
 
 # Chemins des fichiers JSON d'analyse
 CODE_METRICS_JSON_PATH = os.path.join(OUTPUT_DIR, "code_metrics.json")
