@@ -7,45 +7,30 @@ on:
   pull_request:
     paths:
       - "**.tf"
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   tfdefect-analysis:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Cloner le dépôt
+      - name: Cloner le dépôt
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: 📥 Restaurer defect_history.json précédent (si disponible)
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: historique-defauts
-          path: out/
 
       - name: 🚀 Lancer TFDefectGA
         uses: ./
         with:
           model: randomforest
 
-      - name: 📁 Copier les artefacts depuis /app/out (conteneur)
-        run: |
-          mkdir -p out/reports
-          if [ -f /app/out/defect_history.json ]; then cp /app/out/defect_history.json out/; fi
-          if compgen -G "/app/out/reports/*.html" > /dev/null; then cp /app/out/reports/*.html out/reports/; fi
-
       - name: 📦 Sauvegarder le rapport HTML
-        if: success() && always()
         uses: actions/upload-artifact@v4
         with:
           name: rapport-tfdefectga
           path: out/reports/*.html
 
       - name: 🧠 Sauvegarder defect_history.json
-        if: success() && always()
         uses: actions/upload-artifact@v4
         with:
           name: historique-defauts
