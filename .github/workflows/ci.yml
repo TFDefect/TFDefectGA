@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Lancer TFDefectGA
+      - name: 🚀 Lancer TFDefectGA
         uses: ./
         with:
           model: randomforest
