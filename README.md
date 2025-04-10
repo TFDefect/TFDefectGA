@@ -19,6 +19,7 @@ TFDefectGA est un outil avancé d'analyse des fichiers **Terraform (`.tf`)** com
 - [🐳 Docker et GHCR](#-docker-et-ghcr)
 - [⚙️ Modes d'Analyse Disponibles](#️-modes-danalyse-disponibles)
 - [🤖 Modèle Prédictif](#-modèle-prédictif)
+- [📚 Modèles Actuellement Supportés](#-modèles-actuellement-supportés)
 - [📈 Historique des défauts](#-historique-des-défauts-defect_historyjson)
 - [🧪 Tests](#-tests)
 - [🔧 Formatage Terraform](#-formatage-terraform)
@@ -177,6 +178,34 @@ Pour qu’un modèle soit utilisable, il faut :
 > Exemple : `--model lightgbm`
 
 **⚠️ Le nom du modèle doit correspondre au nom du fichier `.csv` ET à la clé du `ModelFactory`.**
+
+---
+
+## 📚 Modèles actuellement supportés
+
+TFDefectGA supporte plusieurs modèles de Machine Learning. Voici la liste des modèles disponibles :
+
+| Nom du modèle (`--model`) | Type de modèle              | Fichier attendu                                       |
+|---------------------------|-----------------------------|-------------------------------------------------------|
+| `dummy`                   | Modèle de test aléatoire    | Pas de fichier requis                                 |
+| `randomforest`            | RandomForestClassifier      | `models/random_forest_model.joblib` + `features/randomforest_features.csv` |
+| `lightgbm`                | LightGBMClassifier          | `models/lightgbm_model.joblib` + `features/lightgbm_features.csv`         |
+| `logisticreg`             | LogisticRegression          | `models/logisticreg_model.joblib` + `features/logisticreg_features.csv`   |
+| `naivebayes`              | GaussianNB                  | `models/naivebayes_model.joblib` + `features/naivebayes_features.csv`     |
+
+> 🧠 Les modèles sont chargés dynamiquement via `ModelFactory`, il est donc facile d’en ajouter de nouveaux en suivant la même structure.
+
+---
+
+### 🆘 Aide en ligne
+
+Pour afficher toutes les options disponibles, lance simplement :
+
+```bash
+python app/action_runner.py --help
+```
+
+Cela t’affichera tous les paramètres disponibles (`--model`, `--extractor`, `--show-history`, `--generate-report`, etc.) et comment les utiliser.
 
 ---
 

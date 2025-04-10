@@ -49,11 +49,14 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-12345678"
+  ami           = "ami-123456789"
   instance_type = "t2.micro"
+  key_name      = "my-key"
+  subnet_id     = "subnet-12345678"
 
   provisioner "local-exec" {
-    command = "echo Hello, World"
+    command = "echo Hello World"
+    timeout = "5m"
   }
 
   lifecycle {
