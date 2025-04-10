@@ -10,7 +10,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/abdelhaouari/tfdefectga:v1.0.2'
+  image: 'docker://ghcr.io/abdelhaouari/tfdefectga:v1'
   entrypoint: 'python'
   args:
   - 'app/action_runner.py'
