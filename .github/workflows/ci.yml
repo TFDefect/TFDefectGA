@@ -31,19 +31,21 @@ jobs:
         with:
           model: randomforest
 
-      - name: 📁 Copier les artefacts depuis /app/out
+      - name: 📁 Copier les artefacts depuis /app/out (conteneur)
         run: |
           mkdir -p out/reports
-          cp /app/out/reports/*.html out/reports/ || true
-          cp /app/out/defect_history.json out/ || true
+          if [ -f /app/out/defect_history.json ]; then cp /app/out/defect_history.json out/; fi
+          if compgen -G "/app/out/reports/*.html" > /dev/null; then cp /app/out/reports/*.html out/reports/; fi
 
       - name: 📦 Sauvegarder le rapport HTML
+        if: success() && always()
         uses: actions/upload-artifact@v4
         with:
           name: rapport-tfdefectga
           path: out/reports/*.html
 
       - name: 🧠 Sauvegarder defect_history.json
+        if: success() && always()
         uses: actions/upload-artifact@v4
         with:
           name: historique-defauts
