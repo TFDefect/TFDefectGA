@@ -4,6 +4,9 @@ class ActionRunner {
     + main()
     + save_results_to_file(results, output_path)
     + verify_jar_path(jar_path)
+    + run_prediction_flow(model_type: str)
+    + generate_report_from_history()
+    + detect_and_analyze(extractor_type): Dict
     + clone_repository(repo_url)
 }
 
@@ -15,6 +18,7 @@ class AnalyzeTFCode {
 class DetectTFChanges {
     + __init__(repo_path: str)
     + get_modified_tf_blocks(commit_hash: str): Dict[str, List[str]]
+    + get_changed_blocks(self): Dict[str, Dict[str, List[str]]]
 }
 
 class GitChanges {
@@ -33,35 +37,74 @@ class TerraformParser {
     + __init__(file_path: str)
     + find_block(changed_line: int): str
     + find_block_bounds(line_number: int): Tuple[int, int]
+    + find_blocks(self, changed_lines: List[int]): List[str]
+}
+
+class FeatureVectorBuilder {
+  + __init__(self, repo_path: str, terrametrics_jar_path: str)
+  + normalize_block_identifier(block_str: str) : str
+  + build_vectors(self): Dict[str, List[float]]
 }
 
 abstract class BaseMetricsExtractor {
     + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
 }
 
-class TerraMetricsAdapter {
+class CodeMetricsExtractor {
     + __init__(jar_path: str)
-    + analyze_blocks(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
-    + analyze_repo(repo_path: str): Dict[str, dict]
+    + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+    + _run_terrametrics(self, tf_path: str, output_path: str)
 }
 
-class DeltaMetricsAdapter {
+class DeltaMetricsExtractor {
+    + __init__(repo_path: str)
+    + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+    + _run_terrametrics(tf_path: str, output_path: str)
+    + _load_metrics(json_path: str): Dict[str, dict]
+    + _compute_delta_metrics(metrics_before: dict, metrics_after: dict): Dict[str, dict]
+}
+
+class ProcessMetricsExtractor {
     + __init__(repo_path: str)
     + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
 }
 
-class ProcessMetricsAdapter {
-    + __init__(repo_path: str)
-    + extract_metrics(modified_blocks: Dict[str, List[str]]): Dict[str, dict]
+class ProcessMetrics {
+    + __init__(self, contribution, previous_contributions)
+    + get_subs_dire_name(fileDirs)
+    + num_defects_in_block_before(): Int
+    + kexp(): Int
+    + num_same_blocks_with_different_names_changed_before(): Int
+    + num_devs(): Int
+    + num_commits: Int
+    + num_unique_change(): Int
+    + code_ownership(): Int
+    + get_author_rexp(): Int
+    + get_author_bexp(): Int
+    + get_author_sexp(): Int
+    + age(): Int
+    + time_interval(): Int
+    + resume_process_metrics(): Dict[str, Int]
+
+}
+
+class ContributionBuilder {
+    + get_contribution(repo_path: str, file_path: str, block_identifiers: str): Dict[str, any]
+    + def get_previous_contributions(repo_path: str, file_path: str, 
+    block_identifiers: str, defect_history: Dict[str, List[Dict]] = None): List[Dict]
 }
 
 abstract class BaseModel {
     + predict(input_data: List[float]) : Any
 }
 
-class SklearnModel {
+class RandomForestModel {
     + __init__(model_path: str)
     + predict(input_data: List[float]) : Any
+    + predict_with_confidence(
+        self, vectors: Dict[str, List[float]]
+    ) : Dict[str, Tuple[int, float]]
+    + describe(self) : str
 }
 
 class DummyModel {
@@ -71,29 +114,47 @@ class DummyModel {
 
 class ReportGenerator {
     + __init__(results: List[dict])
-    + generate_text_report(): str
-    + generate_json_report(): str
+    + generate(self, predictions: dict): str
 }
 
 class MetricsExtractorFactory {
     + get_extractor(extractor_type: str, output_path: str): BaseMetricsExtractor
 }
 
+class ModelFactory {
+    + get_model(extractor_type: str): BaseModel
+}
+
+class DefectHistoryManager {
+    + load_defect_history(): Dict[str, list]
+    + save_defect_history(history: Dict[str, list])
+    + update_defect_history(predictions: Dict[str, int]) 
+}
+
 AnalyzeTFCode <-u- ActionRunner : calls
+ActionRunner -u-> FeatureVectorBuilder
 DetectTFChanges <-u-   ActionRunner: calls
 GitChanges <-u-  DetectTFChanges: uses
-GitChanges -down-> GitAdapter : depends on
-GitAdapter -down-> TerraformParser : parses tf files
+GitChanges --> GitAdapter : depends on
+GitAdapter --> TerraformParser : parses tf files
 
 AnalyzeTFCode -down-> BaseMetricsExtractor : uses
-TerraMetricsAdapter -u--|> BaseMetricsExtractor
-DeltaMetricsAdapter -u-|> BaseMetricsExtractor
-ProcessMetricsAdapter -u--|> BaseMetricsExtractor
-
+CodeMetricsExtractor -u--|> BaseMetricsExtractor
+DeltaMetricsExtractor -u-|> BaseMetricsExtractor
+ProcessMetricsExtractor -u--|> BaseMetricsExtractor
+ProcessMetricsExtractor -- ProcessMetrics: uses
 MetricsExtractorFactory ..> BaseMetricsExtractor
 
+ProcessMetricsExtractor -- ContributionBuilder: uses
+
 AnalyzeTFCode -down-> BaseModel : uses
-SklearnModel -u-|> BaseModel
+RandomForestModel -u-|> BaseModel
 DummyModel -u-|> BaseModel
 AnalyzeTFCode -down-> ReportGenerator : generates reports
+ModelFactory ..> BaseModel
+
+ActionRunner --> DefectHistoryManager : uses
+DefectHistoryManager --> GitAdapter : gets commit info
+ 
+ProcessMetricsExtractor --> DefectHistoryManager : reads defect history
 @enduml

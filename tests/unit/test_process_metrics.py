@@ -4,6 +4,24 @@ from core.parsers.process_metric_calculation import ProcessMetrics
 
 
 def test_process_metrics_all_metrics():
+    """
+    Teste les différentes méthodes de la classe `ProcessMetrics` pour vérifier
+    qu'elles calculent correctement les métriques de processus.
+
+    Scénario :
+        - Une contribution actuelle et un historique de contributions précédentes sont fournis.
+        - Les contributions incluent des informations sur les auteurs, les dates, les commits,
+          et les blocs Terraform.
+
+    Assertions :
+        - Vérifie que les métriques calculées (comme `num_defects_in_block_before`,
+          `num_devs`, `code_ownership`, etc.) retournent les valeurs attendues.
+        - Vérifie que la méthode `resume_process_metrics` retourne un résumé contenant
+          toutes les métriques calculées.
+
+    Returns:
+        None
+    """
     contribution = {
         "author": "alice",
         "file": "main.tf",
@@ -88,6 +106,20 @@ def test_process_metrics_all_metrics():
 
 
 def test_resume_process_metrics_keys():
+    """
+    Teste la méthode `resume_process_metrics` pour vérifier qu'elle retourne
+    un dictionnaire contenant toutes les clés attendues.
+
+    Scénario :
+        - Une contribution actuelle et un historique de contributions précédentes sont fournis.
+        - La méthode `resume_process_metrics` est appelée pour générer un résumé des métriques.
+
+    Assertions :
+        - Vérifie que toutes les clés attendues sont présentes dans le résumé retourné.
+
+    Returns:
+        None
+    """
     contribution = {
         "author": "alice",
         "file": "main.tf",

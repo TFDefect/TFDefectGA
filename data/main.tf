@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.0"
+      version = "~> 7.0"
     }
   }
 }
@@ -11,6 +11,8 @@ provider "aws" {
   credentials = file(var.keyfile_location)
   region      = var.region
   project     = var.gcp_project_id
+  zone        = var.gcp_zone
+  access_key  = var.aws_access_key
 }
 
 module "kubernetes" {
@@ -32,11 +34,14 @@ module "kubernetes" {
   nodeport_whitelist          = var.nodeport_whitelist
   ingress_whitelist           = var.ingress_whitelist
   extra_ingress_firewalls     = var.extra_ingress_firewalls
+  master_additional_disk_size = var.master_additional_disk_size
+  worker_additional_disk_size = var.worker_additional_disk_size
+  master_additional_disk_iops = var.master_additional_disk_iops
 }
 
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "my-bucket"
-  acl    = "private"
+  acl    = "public"
 
   # Commentaire contient une accolade {
   # Commentaire contient une accolade }
@@ -44,11 +49,15 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-123456789"
+  ami           = "ami-12345678"
   instance_type = "t2.micro"
+  key_name      = "my-key"
+  subnet_id     = "subnet-12345678"
+  vpc_security_group_ids = ["sg-12345678"]
 
   provisioner "local-exec" {
     command = "echo Hello, World"
+    timeout = "5m"
   }
 
   lifecycle {

@@ -6,7 +6,25 @@ from core.use_cases.feature_vector_builder import FeatureVectorBuilder
 @patch("core.use_cases.feature_vector_builder.MetricsExtractorFactory.get_extractor")
 @patch("core.use_cases.feature_vector_builder.DetectTFChanges")
 def test_build_vectors_merges_all_metrics(mock_detect, mock_factory):
-    # Simuler les extracteurs
+    """
+    Teste la méthode `build_vectors` de la classe FeatureVectorBuilder pour vérifier
+    qu'elle fusionne correctement les métriques extraites des différents extracteurs.
+
+    Scénario :
+        - Les extracteurs de métriques (code, delta, process) sont simulés pour retourner
+          des métriques spécifiques.
+        - Les blocs Terraform modifiés sont simulés via `DetectTFChanges`.
+        - La méthode `build_vectors` est appelée pour générer les vecteurs de caractéristiques.
+
+    Assertions :
+        - Vérifie que les vecteurs générés contiennent les clés attendues.
+        - Vérifie que les vecteurs générés sont sous forme de liste.
+        - Vérifie que les valeurs des vecteurs correspondent aux métriques simulées.
+
+    Returns:
+        None
+    """
+    # Simuler les extracteurs de métriques
     mock_code_extractor = MagicMock()
     mock_code_extractor.extract_metrics.return_value = {
         "main.tf": {
@@ -47,7 +65,10 @@ def test_build_vectors_merges_all_metrics(mock_detect, mock_factory):
     }
     mock_detect.return_value = mock_detect_instance
 
-    builder = FeatureVectorBuilder(repo_path=".", terrametrics_jar_path="fake.jar")
+    # Instancier le FeatureVectorBuilder et appeler la méthode `build_vectors`
+    builder = FeatureVectorBuilder(
+        repo_path=".", terrametrics_jar_path="fake.jar", model_name="dummy"
+    )
     vectors = builder.build_vectors()
 
     # Vérification du résultat

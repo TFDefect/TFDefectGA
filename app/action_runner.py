@@ -40,7 +40,9 @@ def run_prediction_flow(model_type: str):
     run_terraform_fmt(config.REPO_PATH)
 
     logger.info("Construction des vecteurs de caractéristiques...")
-    builder = FeatureVectorBuilder(config.REPO_PATH, config.TERRAMETRICS_JAR_PATH)
+    builder = FeatureVectorBuilder(
+        config.REPO_PATH, config.TERRAMETRICS_JAR_PATH, model_name=model_type
+    )
     vectors = builder.build_vectors()
 
     if not vectors:
@@ -88,7 +90,7 @@ def run_prediction_flow(model_type: str):
 
                 print(f"\n{status_icon} Block: {block_id}")
                 print(f"    -> État: {status_label}")
-                print(f"    -> Score de confiance: {confidence:.2f}")
+                print(f"    -> Score de confiance: {confidence:.6f}")
                 print(f"    -> Défauts précédents: {count}")
 
                 total += 1
@@ -263,7 +265,9 @@ def main():
         description="TFDefectGA - Analyse et prédiction de défauts Terraform"
     )
     parser.add_argument(
-        "--model", type=str, help="Nom du modèle de prédiction à utiliser (ex: dummy)"
+        "--model",
+        type=str,
+        help="Nom du modèle de prédiction à utiliser (ex: dummy, randomforest)",
     )
     parser.add_argument(
         "--extractor",

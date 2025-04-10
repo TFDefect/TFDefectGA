@@ -40,10 +40,12 @@ data/*.log
 # Ignorer les artefacts de GitHub Actions
 .github/workflows/*.log
 
+out/*.json
 output.json
 code_metrics.json
 delta_metrics.json
 process_metrics.json
+defect_history.json
 
 # Ignore les fichiers et dossiers Terraform temporaires
 .terraform/
@@ -51,3 +53,5 @@ process_metrics.json
 terraform.tfstate
 terraform.tfstate.backup
 modules.json
+
+out/reports/*

@@ -15,7 +15,27 @@ def test_extract_metrics_success(
     mock_open_file,
     mock_cleanup,
 ):
-    # Setup
+    """
+    Teste la méthode `extract_metrics` de la classe CodeMetricsExtractor.
+
+    Ce test simule les dépendances internes de la classe pour vérifier que la méthode
+    `extract_metrics` retourne les métriques attendues pour des blocs Terraform fictifs.
+
+    Scénario :
+        - Les méthodes internes de CodeMetricsExtractor sont remplacées par des mocks.
+        - Un fichier temporaire contenant des métriques simulées est créé.
+        - La méthode `extract_metrics` est appelée avec des blocs Terraform modifiés.
+        - Les résultats retournés sont comparés aux métriques simulées.
+
+    Assertions :
+        - Vérifie que le résultat contient les métriques pour le fichier "main.tf".
+        - Vérifie que les métriques retournées correspondent aux données simulées.
+        - Vérifie que la méthode `_run_terrametrics` est appelée une fois.
+        - Vérifie que la méthode `_cleanup_temp_files` est appelée une fois.
+
+    Returns:
+        None
+    """
     mock_open_file.return_value.__enter__.return_value.read.return_value = (
         '{"data": "ok"}'
     )

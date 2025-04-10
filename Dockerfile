@@ -32,4 +32,4 @@ RUN pip install --upgrade pip && \
 ENV PYTHONPATH=/app
 
 # Entrée du container
-ENTRYPOINT ["python", "app/action_runner.py"]
+ENTRYPOINT ["python", "/app/app/action_runner.py"]

@@ -1,4 +1,5 @@
 @startuml
+
 skinparam linetype ortho
 
 node "TFDefect GitHub Action" {
@@ -16,22 +17,26 @@ node "TFDefect GitHub Action" {
 
     rectangle "Couche domaine" #FFFF99 {
         frame "Models" {
-            package "skLearnModel" {}
+            package "RandomForestModel" {}
             package "DummyModel" {}
-        }    
+        }  
+        package "ModelFactory" {}  
     }
 
     rectangle "Couche infrastructure" #90EE90 {
         package "GitChanges" {}
         package "GitAdapter" {}
         package "TerraformParser" {}
+        package "DefectHistoryManager" {}
         frame "MetricsExtractors" {
-            package "TerraMetricsAdapter" {}
-            package "ProcessMetricsAdapter" {}
-            package "DeltaMetricsAdapter" {}
+            package "CodeMetricsExtractor" {}
+            package "ProcessMetricsExtractor" {}
+            package "DeltaMetricsExtractor" {}
         }
+        package "ProcessMetrics" {}
+        package "ContributionBuilder" {}
         package "MetricsExtractorFactory" {}
-        
+        package "FeatureVectorBuilder" {}
     }
 
     rectangle "Couche données" #D3D3D3 {
@@ -53,9 +58,21 @@ GitChanges ..> GitAdapter : "dépend de"
 GitAdapter ..> TerraformParser : "parse des fichiers"
 
 AnalyzeTFCode .down.> Cache: Stocke les \n données calculées
-AnalyzeTFCode ...> MetricsExtractors: utilise
-TerraMetricsAdapter ....> TerraMetrics: utilise
-Models <.... TerraMetricsAdapter : "envoie un vecteur \n de données"
+AnalyzeTFCode ..> MetricsExtractors: utilise
+CodeMetricsExtractor ...> TerraMetrics: utilise
+DeltaMetricsExtractor ....> TerraMetrics: utilise
 
-MetricsExtractorFactory ...> MetricsExtractors: Crée une instance de
+ModelFactory .down..> Models: Crée une instance de 
+
+MetricsExtractorFactory .u..> MetricsExtractors: Crée une instance de
+ProcessMetricsExtractor ...> ProcessMetrics: utilise
+ProcessMetricsExtractor ...> ContributionBuilder: utilise
+
+FeatureVectorBuilder ..> MetricsExtractors : "utilise"
+FeatureVectorBuilder ...> Models : "prépare les vecteurs pour"
+ActionRunner ...> FeatureVectorBuilder : "utilise"
+
+ActionRunner ..> DefectHistoryManager : "enregistre les résultats"
+Models ..> DefectHistoryManager : "sauvegarde les prédictions"
+Cache ..> DefectHistoryManager : "persiste les données"
 @enduml
