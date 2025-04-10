@@ -41,7 +41,7 @@ module "kubernetes" {
 
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "my-bucket"
-  acl    = "public"
+  acl    = "private"
 
   # Commentaire contient une accolade {
   # Commentaire contient une accolade }
@@ -49,14 +49,17 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami                    = "ami-1234567"
+  ami                    = "ami-12345678"
   instance_type          = "t2.micro"
-  key_name               = "my-key"
-  subnet_id              = "subnet-1234567"
+  subnet_id              = "subnet-12345678"
   vpc_security_group_ids = ["sg-1234567"]
+  key_name               = "my-key"
+  tags = {
+    Name = "example-instance"
+  }
 
   provisioner "local-exec" {
-    command = "echo Hello, World"
+    command = "echo Hello World"
   }
 
   lifecycle {

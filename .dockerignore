@@ -19,3 +19,12 @@ tests/
 build/
 dist/
 *.egg-info
+
+# Exclure les fichiers dans out/
+out/defect_history.json
+output.json
+code_metrics.json
+delta_metrics.json
+process_metrics.json
+defect_history.json
+
