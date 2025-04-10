@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.0"
+      version = "~> 7.0"
     }
   }
 }
@@ -49,13 +49,14 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-1234567"
+  ami           = "ami-12345678"
   instance_type = "t2.micro"
   key_name      = "my-key"
-  subnet_id     = "subnet-1234567"
+  subnet_id     = "subnet-12345678"
+  vpc_security_group_ids = ["sg-12345678"]
 
   provisioner "local-exec" {
-    command = "echo Hello World"
+    command = "echo Hello, World"
     timeout = "5m"
   }
 
