@@ -21,7 +21,7 @@ REPORTS_OUTPUT_FOLDER = os.path.join(os.path.join("out"), "reports")
 CODE_METRICS_JSON_PATH = os.path.join(OUTPUT_DIR, "code_metrics.json")
 DELTA_METRICS_JSON_PATH = os.path.join(OUTPUT_DIR, "delta_metrics.json")
 PROCESS_METRICS_JSON_PATH = os.path.join(OUTPUT_DIR, "process_metrics.json")
-DEFECT_HISTORY_PATH = os.path.join(OUTPUT_DIR, "defect_history.json")
+DEFECT_HISTORY_PATH = os.path.join(os.path.join("out"), "defect_history.json")
 
 # Chemin du repo analysé
 REPO_PATH = os.environ.get("GITHUB_WORKSPACE", ".")
