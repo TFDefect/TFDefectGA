@@ -93,5 +93,95 @@
             "fault_prone": 1,
             "date": "2025-04-06T23:06:31.720046"
         }
+    ],
+    "data\\data_block.tf::aws_security_group.allow_tls": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:46:27.557233"
+        }
+    ],
+    "data\\variables.tf::variable.instance_type": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 1,
+            "date": "2025-04-12T12:46:27.557233"
+        }
+    ],
+    "data\\variables.tf::variable.ami_id": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 1,
+            "date": "2025-04-12T12:46:27.557233"
+        },
+        {
+            "commit": "d1c8a2a978b1bc7ae31deaf96789916cb9581987",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:49:04.743139"
+        }
+    ],
+    "data\\security_group.tf::aws_security_group.allow_tls": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 1,
+            "date": "2025-04-12T12:46:27.557233"
+        },
+        {
+            "commit": "d1c8a2a978b1bc7ae31deaf96789916cb9581987",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:49:04.743139"
+        }
+    ],
+    "data\\instance.tf::aws_instance.example": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:46:27.557233"
+        }
+    ],
+    "data\\variables.tf::variable.vpc_id": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:46:27.557233"
+        }
+    ],
+    "data\\data_block.tf::aws_ami.ubuntu": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 1,
+            "date": "2025-04-12T12:46:27.557233"
+        }
+    ],
+    "data\\variables.tf::variable.region": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:46:27.557233"
+        },
+        {
+            "commit": "d1c8a2a978b1bc7ae31deaf96789916cb9581987",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:49:04.743139"
+        }
+    ],
+    "data\\module.tf::module.vpc": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:46:27.557233"
+        },
+        {
+            "commit": "d1c8a2a978b1bc7ae31deaf96789916cb9581987",
+            "fault_prone": 0,
+            "date": "2025-04-12T12:49:04.743139"
+        }
+    ],
+    "data\\data_block.tf::aws_instance.example": [
+        {
+            "commit": "adb310e73c5704902a9746d16b7d6669dd33fb65",
+            "fault_prone": 1,
+            "date": "2025-04-12T12:46:27.557233"
+        }
     ]
 }
