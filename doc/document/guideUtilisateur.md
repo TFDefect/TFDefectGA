@@ -1,5 +1,78 @@
 # Guide Utilisateur – TFDefect GitHub Action
 
+## Table des matières
+- [Guide Utilisateur – TFDefect GitHub Action](#guide-utilisateur--tfdefect-github-action)
+  - [Table des matières](#table-des-matières)
+  - [Glossaire](#glossaire)
+  - [Introduction](#introduction)
+    - [Présentation de l'outil](#présentation-de-loutil)
+    - [Objectifs du logiciel](#objectifs-du-logiciel)
+    - [Public cible](#public-cible)
+  - [Prérequis](#prérequis)
+    - [Pour l'utilisation via GitHub Actions](#pour-lutilisation-via-github-actions)
+    - [Pour l'utilisation locale](#pour-lutilisation-locale)
+    - [Prérequis pour les fichiers sources](#prérequis-pour-les-fichiers-sources)
+  - [Installation et exécution](#installation-et-exécution)
+    - [Utilisation de Docker](#utilisation-de-docker)
+      - [Exemple de commande (compatible Linux, macOS, Git Bash sur Windows) :](#exemple-de-commande-compatible-linux-macos-git-bash-sur-windows-)
+      - [Construction locale de l’image Docker](#construction-locale-de-limage-docker)
+    - [Utilisation locale](#utilisation-locale)
+      - [Étapes d'installation](#étapes-dinstallation)
+      - [Exécution](#exécution)
+  - [Fonctionnalités](#fonctionnalités)
+    - [Analyse statique du code](#analyse-statique-du-code)
+    - [Analyse historique et contextuelle](#analyse-historique-et-contextuelle)
+    - [Prédiction de défauts](#prédiction-de-défauts)
+    - [Rapports et visualisation](#rapports-et-visualisation)
+    - [Intégration DevOps](#intégration-devops)
+  - [Modes d'analyse disponibles](#modes-danalyse-disponibles)
+    - [Extracteur Codemetrics](#extracteur-codemetrics)
+    - [Extracteur Deltametrics](#extracteur-deltametrics)
+    - [Extracteur ProcessMetrics](#extracteur-processmetrics)
+  - [Prédiction par modèle de Machine Learning](#prédiction-par-modèle-de-machine-learning)
+  - [Démonstration vidéo](#démonstration-vidéo)
+  - [Foire Aux Questions (FAQ)](#foire-aux-questions-faq)
+    - [Questions générales](#questions-générales)
+    - [Installation et configuration](#installation-et-configuration)
+    - [Résultats et interprétation](#résultats-et-interprétation)
+  - [Liens et ressources](#liens-et-ressources)
+    - [Dépôt GitHub officiel](#dépôt-github-officiel)
+    - [Documentation additionnelle](#documentation-additionnelle)
+
+---
+<div style="page-break-before:always"></div>
+
+## Glossaire
+
+**Bloc Terraform** : Unité structurelle dans un fichier Terraform qui définit une ressource, variable, module ou autre élément d'infrastructure.
+
+**Défaut** : Erreur ou problème dans le code Terraform pouvant entraîner des dysfonctionnements lors du déploiement ou de l'exécution.
+
+**DevOps** : Méthodologie combinant le développement logiciel (Dev) et les opérations informatiques (Ops) visant à raccourcir le cycle de développement et à fournir en continu des fonctionnalités de haute qualité.
+
+**Docker** : Plateforme de conteneurisation permettant d'empaqueter une application et ses dépendances dans un conteneur virtuel.
+
+**GitHub Actions** : Fonctionnalité de GitHub permettant l'automatisation des workflows de développement logiciel directement dans un dépôt GitHub.
+
+**IaC (Infrastructure as Code)** : Approche consistant à gérer et provisionner l'infrastructure informatique via du code plutôt que par des processus manuels.
+
+**Machine Learning (ML)** : Discipline utilisant des algorithmes et des modèles statistiques permettant aux ordinateurs d'apprendre à partir des données sans être explicitement programmés pour une tâche spécifique.
+
+**Random Forest** : Algorithme d'apprentissage automatique combinant plusieurs arbres de décision pour améliorer la précision des prédictions.
+
+**Terraform** : Outil open-source d'Infrastructure as Code développé par HashiCorp permettant de créer, modifier et versionner l'infrastructure de manière sécurisée et efficace.
+
+**TerraMetrics** : Composant de TFDefectGA chargé de calculer les métriques statiques des fichiers Terraform. Pour en savoir plus sur les métriques, consultez cette page: [Terrametrics](https://github.com/stilab-ets/terametrics?tab=readme-ov-file#metrics)
+
+**DeltaMetrics** : Métriques mesurant les différences entre deux versions d'un même bloc de code Terraform.
+
+**Workflow** : Séquence automatisée d'étapes, de tâches et d'opérations pour accomplir un processus spécifique.
+
+**ProcessMetrics** : Mesures liées au processus de développement comme le nombre d'auteurs, la fréquence des modifications, etc. Pour en savoir plus sur les métriques, consultez cette page: [ProcessMetrics](https://github.com/TFDefect/TFDefectGA/wiki/ProcessMetrics)
+
+---
+<div style="page-break-before:always"></div>
+
 ## Introduction
 
 ### Présentation de l'outil
@@ -39,6 +112,8 @@ Avant d'utiliser TFDefectGA, assurez-vous que votre environnement satisfait aux 
 - Un **dépôt GitHub** contenant des fichiers Terraform (`.tf`)
 - Des **droits d'administrateur** sur le dépôt pour configurer les workflows GitHub Actions
 - Un **historique Git** suffisant pour l'analyse des métriques de processus (au moins quelques commits)
+
+<div style="page-break-before:always"></div>
 
 ### Pour l'utilisation locale
 
@@ -84,6 +159,8 @@ MSYS_NO_PATHCONV=1 docker run --rm \
 
 > ℹ️ Le flag `MSYS_NO_PATHCONV=1` est requis sous Git Bash (Windows) pour éviter les conversions automatiques de chemins.
 
+<div style="page-break-before:always"></div>
+
 Cette commande :
 
 - applique `terraform fmt` pour formater les fichiers `.tf`
@@ -121,6 +198,8 @@ source venv/bin/activate  # ou .\venv\Scripts\activate sur Windows
 pip install -r requirements.txt
 pip install -e .
 ```
+
+<div style="page-break-before:always"></div>
 
 #### Exécution
 ```bash
@@ -162,6 +241,8 @@ TFDefectGA offre un ensemble complet de fonctionnalités pour l'analyse de code 
 - **Modèles de Machine Learning** : Utilisation d'algorithmes (comme Random Forest) entraînés sur des ensembles de données historiques pour prédire les défauts potentiels.
 - **Historisation** : Suivi des prédictions dans le temps pour améliorer la précision des modèles.
 
+<div style="page-break-before:always"></div>
+
 ### Rapports et visualisation
 
 - **Rapports HTML interactifs** : Présentation claire et détaillée des résultats d'analyse dans un format accessible.
@@ -181,13 +262,6 @@ TFDefectGA propose plusieurs modes d'analyse qui peuvent être utilisés indépe
 
 ### Extracteur Codemetrics
 Ce mode analyse statiquement vos fichiers Terraform pour extraire plus de 50 métriques différentes à l'aide de l'outil TerraMetrics. 
-
-Les métriques extraites incluent :
-- Complexité cyclomatique
-- Nombre de ressources et variables
-- Profondeur des blocs imbriqués
-- Métriques de duplication
-- Longueur des blocs (lignes de code)
 
 Cette analyse génère un fichier `out/code_metrics.json` contenant toutes les métriques calculées.
 
@@ -228,7 +302,68 @@ TFDefectGA propose plusieurs modèles pour la prédiction de défauts :
 
 2. **Modèle `RandomForest`** : Modèle d'apprentissage automatique avancé combinant de multiples arbres de décision pour une prédiction précise des défauts potentiels.
 
+---
+## Démonstration vidéo
+Pour mieux comprendre l'utilisation de l'outil, veuillez cliquer sur le lien suivant: [Démonstration de TFDefectGA](https://drive.google.com/file/d/1fT4zSIMJr_IyGnh2WB8P_IRn35KANkY7/view)
 
-## Licence
+---
+## Foire Aux Questions (FAQ)
 
-Ce projet est sous **Licence MIT** - © 2025
+### Questions générales
+
+**Q : À quelle fréquence dois-je exécuter TFDefectGA sur mon projet ?**  
+R : Nous recommandons d'exécuter l'analyse à chaque pull request modifiant des fichiers Terraform, ainsi que périodiquement (hebdomadaire) sur l'ensemble du code base pour suivre son évolution.
+
+**Q : L'outil peut-il être utilisé sur des projets Terraform de grande taille ?**  
+R : Oui, TFDefectGA est conçu pour s'adapter à des projets de toutes tailles. Pour les très grands projets, l'analyse peut prendre plus de temps, mais reste performante.
+
+**Q : Les fichiers Terraform générés par d'autres outils sont-ils analysables ?**  
+R : Oui, tant que les fichiers sont syntaxiquement valides selon les standards Terraform.
+
+### Installation et configuration
+
+**Q : Comment puis-je personnaliser le seuil de détection des défauts ?**  
+R : Actuellement, le seuil est fixé dans les modèles. Une future version permettra de le configurer via un paramètre.
+
+**Q : J'obtiens une erreur Java lors de l'exécution locale, que faire ?**  
+R : Vérifiez que vous avez bien Java 11+ installé et que la variable d'environnement `JAVA_HOME` est correctement configurée.
+
+**Q : L'outil fonctionne-t-il avec des versions spécifiques de Terraform ?**  
+R : TFDefectGA est compatible avec toutes les versions récentes de Terraform (0.12+).
+
+<div style="page-break-before:always"></div>
+
+### Résultats et interprétation
+
+**Q : Comment interpréter les différentes couleurs dans le rapport ?**  
+R : Vert : Bloc probablement sans défaut  
+    Orange : Risque modéré de défaut  
+    Rouge : Risque élevé de défaut
+
+**Q : Que faire si un bloc est identifié à risque ?**  
+R : Examinez les métriques associées pour comprendre pourquoi. Les facteurs courants incluent une complexité élevée, des modifications fréquentes par plusieurs développeurs, ou des changements importants récents.
+
+**Q : Les rapports sont-ils persistants ?**  
+R : Oui, les rapports sont sauvegardés dans le dossier `out/reports/` et l'historique des prédictions est conservé dans `defect_history.json`.
+
+---
+
+## Liens et ressources
+
+### Dépôt GitHub officiel
+
+Le code source de TFDefectGA est disponible sur GitHub :
+
+[https://github.com/TFDefect/TFDefectGA](https://github.com/TFDefect/TFDefectGA)
+
+N'hésitez pas à :
+- ⭐ Mettre une étoile au projet si vous le trouvez utile
+- 🐛 Signaler des bugs via les issues GitHub
+- 💡 Proposer des améliorations
+- 🔄 Soumettre des pull requests
+
+### Documentation additionnelle
+
+- [Documentation Terraform officielle](https://www.terraform.io/docs)
+- [Bonnes pratiques Terraform](https://www.terraform-best-practices.com/)
+- [Articles sur l'analyse de qualité d'IaC](https://medium.com/tag/infrastructure-as-code)
