@@ -1,22 +1,45 @@
-# Documentation Technique de l'Action GitHub TFDefect
+# Documentation d'architecture de l'Action GitHub TFDefect
 
-Équipe: PFE017
-
-|Membres de l'équipe| Code permanent |
-|-------------------|----------------|
-|Hamza Bellahsen    | BELH92090100   |
-|Amine Merri     |  MERA79050006  |
-|Abdelmoumene Haouari    |  HAOA25029805  |
-|Mohammed Gallizioli     |  GALM19059709  |
-|Mohammed Amine Gadi     |  GADM81070009  |
-
-
+## Table des matières
+- [Documentation d'architecture de l'Action GitHub TFDefect](#documentation-darchitecture-de-laction-github-tfdefect)
+  - [Table des matières](#table-des-matières)
+  - [Introduction](#introduction)
+  - [Vues architecturales et diagrammes](#vues-architecturales-et-diagrammes)
+    - [Vue architecturale de type module](#vue-architecturale-de-type-module)
+      - [Description de l'architecture](#description-de-larchitecture)
+      - [Couches](#couches)
+    - [Diagramme de classes](#diagramme-de-classes)
+      - [Description des classes](#description-des-classes)
+    - [Diagramme de séquence](#diagramme-de-séquence)
+      - [Flux Principal d'Exécution](#flux-principal-dexécution)
+      - [1. Initialisation du processus](#1-initialisation-du-processus)
+      - [2. Préparation du code](#2-préparation-du-code)
+      - [3. Traitement conditionnel](#3-traitement-conditionnel)
+      - [4. Extraction des blocs modifiés](#4-extraction-des-blocs-modifiés)
+      - [5. Génération des vecteurs de caractéristiques](#5-génération-des-vecteurs-de-caractéristiques)
+      - [6. Prédiction des défauts](#6-prédiction-des-défauts)
+      - [7. Gestion des résultats](#7-gestion-des-résultats)
+      - [8. Communication des résultats](#8-communication-des-résultats)
+  - [Technologies utilisées](#technologies-utilisées)
+    - [Librairies utilisées:](#librairies-utilisées)
+      - [Gestion des Dépôts Git](#gestion-des-dépôts-git)
+      - [Outils d'analyse et traitement](#outils-danalyse-et-traitement)
+      - [Gestion des Logs et Exécution de Commandes](#gestion-des-logs-et-exécution-de-commandes)
+      - [Manipulation des Fichiers et Formats de Données](#manipulation-des-fichiers-et-formats-de-données)
+      - [Machine Learning et Analyse des Données](#machine-learning-et-analyse-des-données)
+      - [Tests et Assurance Qualité](#tests-et-assurance-qualité)
+      - [Annotations et Sécurité](#annotations-et-sécurité)
+    - [Outils DevOps et CI/CD](#outils-devops-et-cicd)
+    - [Gestion des dépendances et environnements](#gestion-des-dépendances-et-environnements)
+  - [Conclusion](#conclusion)
+  
+<div style="page-break-before:always"></div>
 
 ## Introduction
 
 Ce document décrit l'architecture technique du projet en détaillant les différentes couches, composants et technologies utilisées. Son objectif est de fournir une vue d’ensemble claire et structurée de l’architecture de l'Action GitHub, tout en mettant en avant les interactions entre les différentes parties de l’application.
 
-Pour cela, nous présenterons une vue architecturale de type module afin d'illustrer les dépendances fonctionnelles entre les composants du système, ainsi qu'un diagramme de classes détaillant la structure interne et les relations entre les différentes entités logicielles. Nous aborderons également les technologies utilisées telles, que les outils DevOps et les bibliothèques Python.
+Pour cela, nous présenterons une vue architecturale de type module afin d'illustrer les dépendances fonctionnelles entre les composants du système, ainsi qu'un diagramme de classes détaillant la structure interne et les relations entre les différentes entités logicielles. De plus, un diagramme de séquence permettra de montrer le flux d'exécution de TfDefectGA. Nous aborderons également les technologies utilisées telles, que les outils DevOps et les bibliothèques Python.
 
 <div style="page-break-before:always"></div>
 
@@ -28,7 +51,7 @@ La vue architecturale suivante est de type "Utilise". Elle permet de représente
 
 ![Vue module](../diagrams/architecturalView.png)
 
-<img src="../diagrams/legendeModule.png" alt="drawing" width="200"/>
+<img src="../diagrams/legendeModule.png" alt="drawing" width="200" height="170"/>
 
 #### Description de l'architecture
 
@@ -78,6 +101,64 @@ Le diagramme de classes suivant illustre la structure du système en mettant en 
 - **ModelFactory**: Classe implémentant également le pattern Factory, permettant de sélectionner et instancier dynamiquement le modèle de Machine Learning approprié selon les besoins de l'analyse.
 - **DefectHistoryManager**: classe responsable de la gestion de l'historique des défauts prédits dans le temps.
  
+<div style="page-break-before:always"></div>
+
+### Diagramme de séquence
+
+Le diagramme de séquence suivant illustre le processus complet de détection automatique de bugs dans le code Terraform à l'aide de l'outil TFDefectGA. Il représente l'interaction entre différents composants du système et le flux d'exécution lors de l'analyse de code pour la détection de défauts potentiels.
+![Diagramme de séquence](../diagrams/sequenceDiagram.png)
+
+#### Flux Principal d'Exécution
+
+#### 1. Initialisation du processus
+
+- L'utilisateur démarre l'application en exécutant `action_runner.py` avec l'argument `--model randomforest`, spécifiant l'algorithme d'apprentissage à utiliser.
+- Le système commence par vérifier que l'environnement est correctement configuré :
+  - Présence d’un dépôt Git valide
+  - Présence du fichier JAR requis
+
+#### 2. Préparation du code
+
+- L’`ActionRunner` exécute `terraform fmt` pour standardiser le format des fichiers Terraform, facilitant ainsi l’analyse.
+- Le système identifie les fichiers Terraform (`.tf`) qui ont été modifiés dans le dépôt Git.
+
+#### 3. Traitement conditionnel
+
+- Aucun fichier modifié :
+  - Le système en informe simplement l’utilisateur et termine le processus.
+- Fichiers modifiés détectés :
+  - Le système poursuit avec l’analyse détaillée.
+
+#### 4. Extraction des blocs modifiés
+
+- Le composant `DetectTFChanges` extrait les blocs spécifiques de code Terraform qui ont été modifiés, plutôt que d’analyser les fichiers entiers.
+- Ces blocs représentent les unités de code qui seront évaluées pour la détection de bugs.
+
+#### 5. Génération des vecteurs de caractéristiques
+
+- Le `FeatureVectorBuilder` coordonne l’extraction des métriques de code des blocs modifiés.
+- Il utilise le `CodeMetricsExtractor`, obtenu via `MetricsExtractorFactory`, pour calculer diverses métriques du code (complexité, taille, etc.).
+- `AnalyzeTFCode` traite les blocs et retourne les métriques extraites.
+- Ces métriques sont transformées en vecteurs de caractéristiques utilisables par le modèle de machine learning.
+
+#### 6. Prédiction des défauts
+
+- Le `ModelFactory` instancie le modèle `RandomForest` demandé.
+- Le modèle analyse les vecteurs de caractéristiques et prédit la probabilité de défauts pour chaque bloc de code.
+- Le résultat est un mapping entre les identifiants de blocs et leurs prédictions de défauts.
+
+#### 7. Gestion des résultats
+
+- Les prédictions sont enregistrées dans l’historique des défauts via le `DefectHistoryManager` pour un suivi à long terme.
+- Le `ReportGenerator` crée un rapport détaillé des résultats, incluant :
+  - Les prédictions
+  - Les informations sur le modèle utilisé
+- Le système charge l’historique complet des défauts pour contextualiser les nouveaux résultats.
+
+#### 8. Communication des résultats
+
+- L’`ActionRunner` présente finalement les résultats à l’utilisateur dans le terminal, avec les informations pertinentes sur les défauts potentiels détectés.
+
 <div style="page-break-before:always"></div>
 
 ## Technologies utilisées

@@ -1,0 +1,103 @@
+@startuml TFDefectGA - Processus de détection de bugs
+
+actor "Utilisateur" as User
+participant "ActionRunner" as Runner
+participant "DetectTFChanges" as Detector
+participant "GitChanges" as GitChanges
+participant "AnalyzeTFCode" as Analyzer
+participant "MetricsExtractorFactory" as ExtractorFactory
+participant "FeatureVectorBuilder" as VectorBuilder
+participant "ModelFactory" as ModelFactory
+participant "BaseModel" as Model
+participant "DefectHistoryManager" as History
+participant "ReportGenerator" as Report
+
+User -> Runner : exécute action_runner.py --model randomforest
+activate Runner
+
+Runner -> GitAdapter : verify_git_repo()
+activate GitAdapter
+GitAdapter --> Runner : OK
+deactivate GitAdapter
+
+Runner -> Runner : run_prediction_flow("randomforest")
+activate Runner
+
+Runner -> Runner : verify_jar()
+Runner -> Runner : run_terraform_fmt()
+
+Runner -> Detector : new DetectTFChanges(repo_path)
+activate Detector
+
+Runner -> Detector : get_modified_tf_files()
+Detector -> GitChanges : get_modified_files(".tf")
+activate GitChanges
+GitChanges --> Detector : [fichiers Terraform modifiés]
+deactivate GitChanges
+Detector --> Runner : fichiers modifiés
+deactivate Detector
+
+alt fichiers Terraform modifiés détectés
+    Runner -> Detector : new DetectTFChanges(repo_path)
+    activate Detector
+    
+    Runner -> Detector : get_modified_tf_blocks()
+    Detector -> GitChanges : get_modified_blocks()
+    activate GitChanges
+    GitChanges --> Detector : {fichier: [blocs Terraform modifiés]}
+    deactivate GitChanges
+    Detector --> Runner : blocs modifiés
+    deactivate Detector
+    
+    Runner -> VectorBuilder : new FeatureVectorBuilder(repo_path, jar_path, model_name)
+    activate VectorBuilder
+    
+    Runner -> VectorBuilder : build_vectors()
+    VectorBuilder -> ExtractorFactory : get_extractor("codemetrics", jar_path)
+    activate ExtractorFactory
+    ExtractorFactory --> VectorBuilder : CodeMetricsExtractor
+    deactivate ExtractorFactory
+    
+    VectorBuilder -> Analyzer : analyze_blocks(blocks)
+    activate Analyzer
+    Analyzer --> VectorBuilder : métriques extraites
+    deactivate Analyzer
+    
+    VectorBuilder --> Runner : vecteurs de caractéristiques
+    deactivate VectorBuilder
+    
+    Runner -> ModelFactory : get_model("randomforest")
+    activate ModelFactory
+    ModelFactory --> Runner : RandomForestModel
+    deactivate ModelFactory
+    
+    Runner -> Model : predict(vectors)
+    activate Model
+    Model --> Runner : {block_id: prédiction}
+    deactivate Model
+    
+    Runner -> History : update_defect_history(predictions)
+    activate History
+    History --> Runner : OK
+    deactivate History
+    
+    Runner -> Report : generate(predictions, model.describe())
+    activate Report
+    Report --> Runner : chemin du rapport
+    deactivate Report
+    
+    Runner -> History : load_defect_history()
+    activate History
+    History --> Runner : historique des défauts
+    deactivate History
+    
+    Runner -> Runner : affichage des résultats
+    Runner --> User : Affichage des résultats dans le terminal
+else aucun fichier Terraform modifié
+    Runner --> User : "Aucun fichier Terraform modifié détecté"
+end
+
+deactivate Runner
+deactivate Runner
+
+@enduml
